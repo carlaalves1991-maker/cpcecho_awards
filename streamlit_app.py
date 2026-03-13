@@ -33,6 +33,9 @@ st.set_page_config(
     page_icon="🏆",
     layout="wide",
 )
+query_params = st.query_params
+mode = query_params.get("mode", "full")
+
 
 # -----------------------------
 # CONFIGURAÇÃO GERAL
@@ -42,7 +45,7 @@ APP_SUBTITLE = "Powered by SmartLabs @ CPCecho 😎"
 DB_PATH = Path("cpcecho_awards.db")
 
 # Coloca aqui o link público quando tiveres um.
-APP_URL = "https://cpcecho-awards.streamlit.app"
+APP_URL = "https://cpcecho-awards.streamlit.app/?mode=vote"
 
 # Código de admin para controlar apresentação e exportações.
 ADMIN_CODE = "cpcecho2026"
@@ -710,11 +713,17 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-page = st.sidebar.radio(
-    "Navegação",
-    ["Vote", "QR Code", "Live Presentation", "Final Summary", "Admin"],
-    index=0,
-)
+if mode == "vote":
+    page = "Vote"
+else:
+    page = st.sidebar.radio(
+        "Navigation",
+        ["Vote", "QR Code", "Live Presentation", "Final Summary", "Admin"],
+        index=0,
+    )git add .
+git commit -m "update app url and voting app"
+git push origin main
+
 
 st.sidebar.markdown("---")
 st.sidebar.write("**CPCecho Awards**")
