@@ -60,17 +60,17 @@ SHOW_PERCENTAGES = True
 # -----------------------------
 # CATEGORIAS
 # -----------------------------
-CATEGORIES: List[str] = [
-    "Compromisso de Aço (Mais Sentido de Compromisso) 🤝",
-    "Mente Brilhante (Mais Competência) 🧠",
+   CATEGORIES: List[str] = [
+    "Sentido de Compromisso de Ferro 🤝",
+    "Cérebro da Equipa (Mais Competência) 🧠",
     "Coração da Equipa (Mais Espírito de Equipa) ❤️",
-    "Mau Feitio Oficial (Mais Mau Feitio) 😈",
-    "Boa Vibração (Mais Bom Feitio) 😇",
-    "Motor da Evolução (Quem mais faz a equipa evoluir) 🚀",
-    "Confiança Total (Pessoa mais confiável) 🔒",
-    "Megafone da Equipa (Mais Comunicação) 📣",
-    "Nhonhinha Oficial (Mais Nhonhinha) 🧸",
-    "Resolve-Tudo (Resolve Tudo) 🛠️",
+    "Mau Feitio Oficial 😈",
+    "Boa Onda da Equipa 😇",
+    "Motor da Evolução 🚀",
+    "Pessoa Mais Confiável 🔒",
+    "Megafone da Comunicação 📣",
+    "Mais Nhonhinha da Equipa 🧸",
+    "Resolve Tudo Antes de Ser Problema 🛠️"
 ]
 
 # -----------------------------
