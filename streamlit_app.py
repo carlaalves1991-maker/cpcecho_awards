@@ -720,10 +720,7 @@ else:
         "Navigation",
         ["Vote", "QR Code", "Live Presentation", "Final Summary", "Admin"],
         index=0,
-    )git add .
-git commit -m "update app url and voting app"
-git push origin main
-
+    )
 
 st.sidebar.markdown("---")
 st.sidebar.write("**CPCecho Awards**")
