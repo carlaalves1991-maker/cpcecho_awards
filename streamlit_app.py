@@ -362,26 +362,27 @@ def show_header() -> None:
         unsafe_allow_html=True,
     )
     
-    col1, col2 = st.columns([1, 4])
-    
-    with col1:
-        logo_path = Path("logo.png")
-        if logo_path.exists():
-            # Embed SVG directly to avoid deployment issues
-            svg_content = '''<svg id="Camada_1" data-name="Camada 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40"><defs><style>.cls-1{fill:#216390;}.cls-2{fill:#606060;}</style></defs><circle class="cls-1" cx="181.64" cy="15.94" r="4.06"/><path class="cls-2" d="M195,16.46v.06c0,7.05-6,12.78-13.36,12.78s-13.37-5.73-13.37-12.78v-.06h4.22v.06a9.15,9.15,0,0,0,18.29,0v-.06Z"/><path class="cls-1" d="M195,15h-4.22c0-4.68-4.12-8.47-9.14-8.47s-9.11,3.79-9.15,8.47h-4.22c0-6.85,6-12.41,13.37-12.41S195,8.13,195,15Z"/><rect class="cls-1" x="102.15" y="5.39" width="17.11" height="4.18" transform="translate(-0.01 0.21) rotate(-0.11)"/><path class="cls-2" d="M106.46,24V18.85l12.37,0v-4l-16.66,0,0,13.42,17.11,0V24Z"/><path class="cls-2" d="M142.75,25.37a12,12,0,0,1-8.68,3.4C125.58,28.77,122,22.92,122,17s3.86-12,12.12-12a11.79,11.79,0,0,1,8.39,3.5l-2.88,2.77a7.82,7.82,0,0,0-5.51-2.15c-5.52,0-7.91,4.11-7.87,7.93s2.22,7.74,7.87,7.74a8.41,8.41,0,0,0,5.74-2.32Z"/><path class="cls-2" d="M160.74,28.28V19H149.51v9.24H145.2V5.42h4.31v9.64h11.23V5.42H165V28.28Z"/><path class="cls-1" d="M5,22.43c0-.34.06-.69.11-1,.24-1.6.46-3.19.75-4.78A30.08,30.08,0,0,1,7.3,11.19a11.21,11.21,0,0,1,2-3.53,7.42,7.42,0,0,1,4.3-2.43A15.48,15.48,0,0,1,16.34,5c4.79,0,9.59,0,14.38,0A2.15,2.15,0,0,1,33,6.87,4.08,4.08,0,0,1,30.71,11a2.53,2.53,0,0,1-.86.17h-11a4.26,4.26,0,0,0-4.5,3.21,30.69,30.69,0,0,0-.84,3.56,13.16,13.16,0,0,0-.23,2.34,2.23,2.23,0,0,0,2,2.34,5.69,5.69,0,0,0,.83.06H26.94a2.16,2.16,0,0,1,2.35,2,4,4,0,0,1-2.77,4.21,1.47,1.47,0,0,1-.36,0H11.08a8.22,8.22,0,0,1-3.21-.58,4.33,4.33,0,0,1-2.69-3.46C5.11,24.4,5.06,24,5,23.54Z"/><path class="cls-1" d="M50.11,4.94c2.71,0,5.42,0,8.14,0a9.16,9.16,0,0,1,3,.44A4.35,4.35,0,0,1,64.3,8.91a12.68,12.68,0,0,1,.07,3.74A55.45,55.45,0,0,1,63,20.24a17,17,0,0,1-1.85,4.67,7.8,7.8,0,0,1-5.83,3.8,17.32,17.32,0,0,1-2.27.16c-3.45,0-6.9,0-10.34,0-.27,0-.37.07-.42.34-.39,2-.8,4-1.19,6a2,2,0,0,1-1,1.34,5.42,5.42,0,0,1-2.28.77,7.18,7.18,0,0,1-3.06-.17,4.71,4.71,0,0,1-1.22-.58,1.19,1.19,0,0,1-.48-1.33c.65-3.19,1.32-6.38,2-9.57l2.37-11.57c.45-2.21.9-4.43,1.37-6.64a3.15,3.15,0,0,1,3.16-2.54c2.72,0,5.44,0,8.17,0ZM47.59,22.67h0c1.19,0,2.38,0,3.56,0a4,4,0,0,0,2.3-.75,4.63,4.63,0,0,0,1.72-2.53c.3-1,.52-2.09.74-3.14a9.48,9.48,0,0,0,.29-2.91,2.17,2.17,0,0,0-1.58-2,4.07,4.07,0,0,0-1.15-.19c-2.3,0-4.6,0-6.91,0-.46,0-.56.08-.66.54q-.87,4-1.72,7.92c-.19.83-.36,1.66-.54,2.5-.09.46,0,.55.44.55Z"/><path class="cls-1" d="M81.51,28.88c-2.55,0-5.1,0-7.64,0a7.73,7.73,0,0,1-3.17-.65,4.28,4.28,0,0,1-2.52-3.34,11.93,11.93,0,0,1-.07-3.63,53.45,53.45,0,0,1,1.46-7.83,16.07,16.07,0,0,1,1.91-4.66,7.78,7.78,0,0,1,5.81-3.65A20.51,20.51,0,0,1,79.89,5c4.6,0,9.2,0,13.8,0a2.06,2.06,0,0,1,2.22,1.72,3,3,0,0,1-.07,1.84,4.49,4.49,0,0,1-1.73,2.25,2.37,2.37,0,0,1-1.34.4c-3.61,0-7.23,0-10.84,0a4.33,4.33,0,0,0-4.62,3.36,30.48,30.48,0,0,0-.84,3.67,10,10,0,0,0-.17,2.18,2.19,2.19,0,0,0,2,2.25,5.69,5.69,0,0,0,.83.06H89.9a2.19,2.19,0,0,1,2.38,2,4,4,0,0,1-2.78,4.17,1.9,1.9,0,0,1-.41,0Z"/></svg>'''
-            st.markdown(f'<div style="width: 110px;">{svg_content}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown("# 🏆")
-    
-    with col2:
-        st.markdown('<h1 class="header-title">CPCecho Awards</h1>', unsafe_allow_html=True)
-        st.markdown('<p class="header-subtitle">Powered by SmartLabs @ CPCecho 😎</p>', unsafe_allow_html=True)
+    # Cabeçalho com setas de navegação no topo direito
+    st.markdown(
+        '''<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+            <div style="display:flex;align-items:center;gap:16px;">
+                <div style="flex-shrink:0;font-size:2.5rem;line-height:1;">🏆</div>
+                <div>
+                    <h1 class="header-title" style="margin:0;">CPCecho Awards</h1>
+                    <p class="header-subtitle" style="margin:0;">Powered by SmartLabs @ CPCecho 😎</p>
+                </div>
+            </div>
+            <div id="header-nav-arrows"></div>
+        </div>''',
+        unsafe_allow_html=True,
+    )
 
 
 # =========================================================
 # UI - PÁGINA DE VOTO
 # =========================================================
 def render_vote_page() -> None:
+    show_header()
     st.subheader("📱 Votar")
     st.write("Uma pergunta de cada vez. Sem spoilers. Sem batota. Só vibes SmartLabs.")
 
@@ -469,6 +470,7 @@ def render_vote_page() -> None:
 # UI - QR CODE
 # =========================================================
 def render_qr_page() -> None:
+    show_header()
     st.subheader("🔳 QR Code")
     st.write("Projeta isto no ecrã para o pessoal votar no telemóvel.")
 
@@ -523,91 +525,206 @@ def build_results_for_category(votes_df: pd.DataFrame, category: str) -> pd.Data
 # =========================================================
 # UI - APRESENTAÇÃO AO VIVO
 # =========================================================
-def render_live_page() -> None:
-    st.subheader("🎤 Apresentação")
-    st.write("Mostra apenas 1 categoria de cada vez. Os resultados ficam escondidos até carregares em 'Ver resultados'.")
 
+def render_live_page() -> None:
     current_index = get_presentation_index()
     current_category = CATEGORIES[current_index]
     reveal = get_reveal_results()
     votes_df = load_votes()
 
-    # Botões de navegação entre categorias.
-    a, b, c, d = st.columns([1, 1, 1, 2])
-
-    with a:
-        if st.button("⬅ Previous", use_container_width=True, disabled=current_index == 0):
-            set_presentation_index(current_index - 1)
-            set_reveal_results(False)  # sempre que mudas de pergunta, esconde resultados
-            st.rerun()
-
-    with b:
-        if st.button("Next ➡", use_container_width=True, disabled=current_index == len(CATEGORIES) - 1):
-            set_presentation_index(current_index + 1)
-            set_reveal_results(False)  # esconde resultados na próxima pergunta
-            st.rerun()
-
-    with c:
-        if not reveal:
-            if st.button("👀 Ver resultados", use_container_width=True):
-                set_reveal_results(True)
-                st.rerun()
-        else:
-            if st.button("🙈 Esconder resultados", use_container_width=True):
-                set_reveal_results(False)
-                st.rerun()
-
-    with d:
-        st.info(f"A mostrar categoria {current_index + 1} de {len(CATEGORIES)}")
-
-    st.markdown(f"# {current_category}")
-
-    # Enquanto não clicares em "Ver resultados", não mostra nada da votação.
-    if not reveal:
-        st.warning("Resultados escondidos. Carrega em **Ver resultados** quando quiseres revelar.")
-        st.markdown(
-            """
-            ### 🎭 Modo suspense ativado
-            A audiência já pode estar a votar, mas os resultados continuam secretos.
-            """
-        )
-        return
-
-    total_votes = len(votes_df[votes_df["category"] == current_category])
-    total_unique_voters = votes_df["voter_id"].nunique() if not votes_df.empty else 0
-
-    d1, d2 = st.columns(2)
-    d1.metric("Votos nesta categoria", total_votes)
-    d2.metric("Votantes únicos", total_unique_voters)
-
-    results = build_results_for_category(votes_df, current_category)
-
-    if results.empty:
-        st.warning("Ainda não há votos para esta categoria.")
-        return
-
-    leader = results.iloc[0]["employee"]
-    leader_votes = int(results.iloc[0]["votes"])
-
-    st.success(f"Líder atual: {leader} com {leader_votes} votos 🏆")
-
-    chart_df = results.set_index("employee")[["votes"]]
-    st.bar_chart(chart_df)
-
-    display_df = results.rename(
-        columns={"employee": "Colaborador", "votes": "Votos", "percentage": "%"}
+    # ── Fundo CPC azul ─────────────────────────────────────
+    st.markdown(
+        """
+        <style>
+        [data-testid="stAppViewContainer"],
+        [data-testid="stAppViewContainer"] > div:first-child,
+        [data-testid="stMain"],
+        .main {
+            background-color: #0f2d45 !important;
+        }
+        [data-testid="stHeader"] {
+            background-color: #0f2d45 !important;
+        }
+        [data-testid="stToolbar"] {
+            background-color: #0f2d45 !important;
+        }
+        /* Header card branco do show_header */
+        .header-container {
+            background-color: rgba(255,255,255,0.05) !important;
+            box-shadow: none !important;
+        }
+        .header-title {
+            color: #FFFFFF !important;
+        }
+        .header-subtitle {
+            color: #8b9ab0 !important;
+        }
+        /* Sidebar */
+        [data-testid="stSidebar"] {
+            background-color: #0a1e2e !important;
+        }
+        [data-testid="stSidebar"] * {
+            color: #8b9ab0 !important;
+        }
+        /* Botões streamlit sobre fundo escuro */
+        .stButton > button {
+            background-color: rgba(255,255,255,0.12) !important;
+            color: #FFFFFF !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+        }
+        .stButton > button:hover {
+            background-color: rgba(255,255,255,0.22) !important;
+        }
+        .stButton > button[kind="primary"] {
+            background-color: #6BAE8A !important;
+            border-color: #6BAE8A !important;
+            color: #0f3a52 !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
     )
 
-    if not SHOW_PERCENTAGES:
-        display_df = display_df[["Colaborador", "Votos"]]
+    # ── CSS específico das setas no header e olho na categoria ───────
+    st.markdown(
+        """
+        <style>
+        /* Setas + olho no header — 2ª, 3ª e 4ª colunas do 1º bloco horizontal */
+        [data-testid="stHorizontalBlock"]:first-of-type [data-testid="stColumn"]:nth-child(2) button,
+        [data-testid="stHorizontalBlock"]:first-of-type [data-testid="stColumn"]:nth-child(3) button,
+        [data-testid="stHorizontalBlock"]:first-of-type [data-testid="stColumn"]:nth-child(4) button {
+            background: transparent !important;
+            border: 1.5px solid rgba(255,255,255,0.25) !important;
+            color: rgba(255,255,255,0.7) !important;
+            border-radius: 50% !important;
+            min-height: 34px !important;
+            height: 34px !important;
+            padding: 0 !important;
+            font-size: 0.85rem !important;
+            line-height: 1 !important;
+            transition: all 0.2s ease !important;
+        }
+        [data-testid="stHorizontalBlock"]:first-of-type [data-testid="stColumn"]:nth-child(2) button:hover:not(:disabled),
+        [data-testid="stHorizontalBlock"]:first-of-type [data-testid="stColumn"]:nth-child(3) button:hover:not(:disabled),
+        [data-testid="stHorizontalBlock"]:first-of-type [data-testid="stColumn"]:nth-child(4) button:hover:not(:disabled) {
+            background: rgba(255,255,255,0.12) !important;
+            border-color: rgba(255,255,255,0.55) !important;
+            color: #FFFFFF !important;
+        }
+        [data-testid="stHorizontalBlock"]:first-of-type [data-testid="stColumn"]:nth-child(2) button:disabled,
+        [data-testid="stHorizontalBlock"]:first-of-type [data-testid="stColumn"]:nth-child(3) button:disabled {
+            opacity: 0.2 !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+    # ── Header com setas + olho na mesma linha ───────────────────────
+    hcol_title, hcol_prev, hcol_next, hcol_eye = st.columns([10, 0.55, 0.55, 0.55])
+    with hcol_title:
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px 0;">'
+            '<span style="font-size:2.2rem;line-height:1;">🏆</span>'
+            '<div>'
+            '<h1 style="color:#FFFFFF;font-size:clamp(1.6rem,2.5vw,2.4rem);font-weight:800;margin:0;line-height:1.1;">CPCecho Awards</h1>'
+            '<p style="color:#8b9ab0;font-size:0.8rem;margin:0;">Powered by SmartLabs @ CPCecho 😎</p>'
+            '</div></div>',
+            unsafe_allow_html=True,
+        )
+    with hcol_prev:
+        if st.button("◀", key="live_prev_icon", help="Categoria anterior", disabled=current_index == 0, use_container_width=True):
+            set_presentation_index(current_index - 1)
+            set_reveal_results(False)
+            st.rerun()
+    with hcol_next:
+        if st.button("▶", key="live_next_icon", help="Próxima categoria", disabled=current_index == len(CATEGORIES) - 1, use_container_width=True):
+            set_presentation_index(current_index + 1)
+            set_reveal_results(False)
+            st.rerun()
+    with hcol_eye:
+        if st.button("👁" if not reveal else "⊘", key="live_eye_icon", help="Mostrar/Esconder resultados", use_container_width=True):
+            set_reveal_results(not reveal)
+            st.rerun()
+
+    # ── Indicador de progresso ────────────────────────────────────────
+    st.markdown(
+        f'<div style="text-align:right;color:#a8d4e8;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;padding:2px 0 10px 0;">'
+        f'{current_index + 1} / {len(CATEGORIES)}'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    total_votes = len(votes_df[votes_df["category"] == current_category])
+    votes_label = f'{total_votes} voto{"s" if total_votes != 1 else ""}'
+
+    if not reveal:
+        card_content = (
+            '<div style="text-align:center;padding:32px 0;">'
+            '<div style="font-size:3rem;margin-bottom:12px;">🎭</div>'
+            '<div style="color:#FFFFFF;font-size:1.3rem;font-weight:700;margin-bottom:8px;">Votação a decorrer</div>'
+            '<div style="color:#8b9ab0;font-size:0.95rem;">A audiência está a votar. Carrega no <strong style="color:#6BAE8A;">👁</strong> quando estiverem prontos.</div>'
+            '</div>'
+        )
+    else:
+        results = build_results_for_category(votes_df, current_category)
+        leader_html = ""
+        bars_html = ""
+        if not results.empty:
+            leader = results.iloc[0]["employee"]
+            leader_votes = int(results.iloc[0]["votes"])
+            lv_label = "votos" if leader_votes != 1 else "voto"
+            leader_html = (
+                f'<div style="background:linear-gradient(90deg,#6BAE8A 0%,#85c2a0 100%);border-radius:8px;padding:10px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">'
+                f'<span style="font-size:1.3rem;">🏆</span>'
+                f'<span style="color:#0e1117;font-weight:700;font-size:1rem;">{leader} &nbsp;·&nbsp; {leader_votes} {lv_label}</span>'
+                f'</div>'
+            )
+            max_v = int(results["votes"].max())
+            for i, row in results.iterrows():
+                name = row["employee"]
+                votes = int(row["votes"])
+                pct = float(row["percentage"])
+                width = (votes / max_v * 100) if max_v > 0 else 0
+                is_lead = i == results.index[0]
+                bar_color = "#6BAE8A" if is_lead else "#6AADD5"
+                fw = "font-weight:700;font-size:1.1rem;" if is_lead else "font-size:1rem;"
+                trophy = " 🏆" if is_lead else ""
+                mw = 2 if votes > 0 else 0
+                bars_html += (
+                    f'<div style="margin-bottom:16px;">'
+                    f'<div style="color:#FFFFFF;{fw}margin-bottom:5px;">{name}{trophy}</div>'
+                    f'<div style="display:flex;align-items:center;gap:10px;">'
+                    f'<div style="flex:1;background:#0f2d45;border-radius:5px;height:26px;overflow:hidden;">'
+                    f'<div style="width:{width}%;height:100%;background:{bar_color};border-radius:5px;min-width:{mw}px;"></div>'
+                    f'</div>'
+                    f'<div style="color:#FFFFFF;font-size:1rem;font-weight:600;min-width:46px;text-align:right;">{pct:.0f}%</div>'
+                    f'</div>'
+                    f'</div>'
+                )
+        no_votes_html = '<div style="color:#8b9ab0;text-align:center;padding:16px;">Ainda não há votos.</div>' if results.empty else ""
+        card_content = leader_html + no_votes_html + bars_html
+
+    # ── Card: título + votos + conteúdo ──────────────────────────────
+    st.markdown(
+        f'<div style="background:#071828;border-radius:16px;padding:28px 32px;">'
+        f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
+        f'<h2 style="color:#FFFFFF;font-size:clamp(1.4rem,2.5vw,2rem);font-weight:800;margin:0;">{current_category}</h2>'
+        f'<span style="color:#6BAE8A;font-size:1.4rem;font-weight:700;">{votes_label}</span>'
+        f'</div>'
+        f'<hr style="border-color:rgba(255,255,255,0.15);margin:12px 0 20px 0;">'
+        f'{card_content}'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
 
 
 # =========================================================
 # UI - RESUMO FINAL
 # =========================================================
 def render_final_summary_page() -> None:
+    show_header()
     st.subheader("📊 Resumo final")
     st.write("Aqui tens o ranking completo de todas as categorias.")
 
@@ -651,6 +768,7 @@ def render_final_summary_page() -> None:
 # UI - ADMIN
 # =========================================================
 def render_admin_page() -> None:
+    show_header()
     st.subheader("🛠️ Admin")
 
     code = st.text_input("Código admin", type="password")
@@ -731,7 +849,6 @@ def render_admin_page() -> None:
 # MAIN
 # =========================================================
 init_db()
-show_header()
 
 # Pequenos ajustes visuais.
 st.markdown(
