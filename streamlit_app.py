@@ -72,7 +72,6 @@ CATEGORIES: List[str] = [
     "Nhonhinha Oficial (Mais Nhonhinha) 🧸",
     "Resolve-Tudo (Resolve Tudo) 🛠️",
 ]
-]
 
 # -----------------------------
 # COLABORADORES
