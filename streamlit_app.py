@@ -333,18 +333,49 @@ def generate_qr_image(url: str) -> BytesIO:
 # UI - CABEÇALHO
 # =========================================================
 def show_header() -> None:
-    left, right = st.columns([1, 5])
-
-    with left:
+    st.markdown(
+        """
+        <style>
+        .header-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .header-title {
+            color: #174E6D;
+            font-family: 'Lato', sans-serif;
+            font-size: 2.5rem;
+            margin: 0;
+        }
+        .header-subtitle {
+            color: #216390;
+            font-family: 'Lato', sans-serif;
+            font-size: 1rem;
+            margin: 0;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    
+    col1, col2 = st.columns([1, 4])
+    
+    with col1:
         logo_path = Path("logo.png")
         if logo_path.exists():
-            st.image(str(logo_path), width=110)
+            # Embed SVG directly to avoid deployment issues
+            svg_content = '''<svg id="Camada_1" data-name="Camada 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40"><defs><style>.cls-1{fill:#216390;}.cls-2{fill:#606060;}</style></defs><circle class="cls-1" cx="181.64" cy="15.94" r="4.06"/><path class="cls-2" d="M195,16.46v.06c0,7.05-6,12.78-13.36,12.78s-13.37-5.73-13.37-12.78v-.06h4.22v.06a9.15,9.15,0,0,0,18.29,0v-.06Z"/><path class="cls-1" d="M195,15h-4.22c0-4.68-4.12-8.47-9.14-8.47s-9.11,3.79-9.15,8.47h-4.22c0-6.85,6-12.41,13.37-12.41S195,8.13,195,15Z"/><rect class="cls-1" x="102.15" y="5.39" width="17.11" height="4.18" transform="translate(-0.01 0.21) rotate(-0.11)"/><path class="cls-2" d="M106.46,24V18.85l12.37,0v-4l-16.66,0,0,13.42,17.11,0V24Z"/><path class="cls-2" d="M142.75,25.37a12,12,0,0,1-8.68,3.4C125.58,28.77,122,22.92,122,17s3.86-12,12.12-12a11.79,11.79,0,0,1,8.39,3.5l-2.88,2.77a7.82,7.82,0,0,0-5.51-2.15c-5.52,0-7.91,4.11-7.87,7.93s2.22,7.74,7.87,7.74a8.41,8.41,0,0,0,5.74-2.32Z"/><path class="cls-2" d="M160.74,28.28V19H149.51v9.24H145.2V5.42h4.31v9.64h11.23V5.42H165V28.28Z"/><path class="cls-1" d="M5,22.43c0-.34.06-.69.11-1,.24-1.6.46-3.19.75-4.78A30.08,30.08,0,0,1,7.3,11.19a11.21,11.21,0,0,1,2-3.53,7.42,7.42,0,0,1,4.3-2.43A15.48,15.48,0,0,1,16.34,5c4.79,0,9.59,0,14.38,0A2.15,2.15,0,0,1,33,6.87,4.08,4.08,0,0,1,30.71,11a2.53,2.53,0,0,1-.86.17h-11a4.26,4.26,0,0,0-4.5,3.21,30.69,30.69,0,0,0-.84,3.56,13.16,13.16,0,0,0-.23,2.34,2.23,2.23,0,0,0,2,2.34,5.69,5.69,0,0,0,.83.06H26.94a2.16,2.16,0,0,1,2.35,2,4,4,0,0,1-2.77,4.21,1.47,1.47,0,0,1-.36,0H11.08a8.22,8.22,0,0,1-3.21-.58,4.33,4.33,0,0,1-2.69-3.46C5.11,24.4,5.06,24,5,23.54Z"/><path class="cls-1" d="M50.11,4.94c2.71,0,5.42,0,8.14,0a9.16,9.16,0,0,1,3,.44A4.35,4.35,0,0,1,64.3,8.91a12.68,12.68,0,0,1,.07,3.74A55.45,55.45,0,0,1,63,20.24a17,17,0,0,1-1.85,4.67,7.8,7.8,0,0,1-5.83,3.8,17.32,17.32,0,0,1-2.27.16c-3.45,0-6.9,0-10.34,0-.27,0-.37.07-.42.34-.39,2-.8,4-1.19,6a2,2,0,0,1-1,1.34,5.42,5.42,0,0,1-2.28.77,7.18,7.18,0,0,1-3.06-.17,4.71,4.71,0,0,1-1.22-.58,1.19,1.19,0,0,1-.48-1.33c.65-3.19,1.32-6.38,2-9.57l2.37-11.57c.45-2.21.9-4.43,1.37-6.64a3.15,3.15,0,0,1,3.16-2.54c2.72,0,5.44,0,8.17,0ZM47.59,22.67h0c1.19,0,2.38,0,3.56,0a4,4,0,0,0,2.3-.75,4.63,4.63,0,0,0,1.72-2.53c.3-1,.52-2.09.74-3.14a9.48,9.48,0,0,0,.29-2.91,2.17,2.17,0,0,0-1.58-2,4.07,4.07,0,0,0-1.15-.19c-2.3,0-4.6,0-6.91,0-.46,0-.56.08-.66.54q-.87,4-1.72,7.92c-.19.83-.36,1.66-.54,2.5-.09.46,0,.55.44.55Z"/><path class="cls-1" d="M81.51,28.88c-2.55,0-5.1,0-7.64,0a7.73,7.73,0,0,1-3.17-.65,4.28,4.28,0,0,1-2.52-3.34,11.93,11.93,0,0,1-.07-3.63,53.45,53.45,0,0,1,1.46-7.83,16.07,16.07,0,0,1,1.91-4.66,7.78,7.78,0,0,1,5.81-3.65A20.51,20.51,0,0,1,79.89,5c4.6,0,9.2,0,13.8,0a2.06,2.06,0,0,1,2.22,1.72,3,3,0,0,1-.07,1.84,4.49,4.49,0,0,1-1.73,2.25,2.37,2.37,0,0,1-1.34.4c-3.61,0-7.23,0-10.84,0a4.33,4.33,0,0,0-4.62,3.36,30.48,30.48,0,0,0-.84,3.67,10,10,0,0,0-.17,2.18,2.19,2.19,0,0,0,2,2.25,5.69,5.69,0,0,0,.83.06H89.9a2.19,2.19,0,0,1,2.38,2,4,4,0,0,1-2.78,4.17,1.9,1.9,0,0,1-.41,0Z"/></svg>'''
+            st.markdown(f'<div style="width: 110px;">{svg_content}</div>', unsafe_allow_html=True)
         else:
             st.markdown("# 🏆")
-
-    with right:
-        st.title(APP_TITLE)
-        st.caption(APP_SUBTITLE)
+    
+    with col2:
+        st.markdown('<h1 class="header-title">CPCecho Awards</h1>', unsafe_allow_html=True)
+        st.markdown('<p class="header-subtitle">Powered by SmartLabs @ CPCecho 😎</p>', unsafe_allow_html=True)
 
 
 # =========================================================
@@ -708,6 +739,57 @@ st.markdown(
     <style>
         .block-container {padding-top: 1.2rem; padding-bottom: 2rem;}
         div[data-testid="stMetricValue"] {font-size: 2rem;}
+        
+        /* Adaptação ao design do site CPCecho */
+        :root {
+            --primary-color: #174E6D;
+            --secondary-color: #216390;
+            --accent-color: #FF4357;
+            --background-color: #FFFFFF;
+            --text-color: #216390;
+            --font-family: 'Lato', sans-serif;
+        }
+        
+        body {
+            font-family: var(--font-family);
+            color: var(--text-color);
+        }
+        
+        .stButton button {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 100px;
+            border: none;
+            font-family: var(--font-family);
+        }
+        
+        .stButton button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .stTextInput input, .stSelectbox select, .stTextArea textarea {
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .stSidebar {
+            background-color: #f9f9f9;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--primary-color);
+            font-family: var(--font-family);
+        }
+        
+        .stSuccess, .stInfo, .stWarning, .stError {
+            border-radius: 8px;
+        }
+        
+        .stMetric {
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            padding: 10px;
+        }
     </style>
     """,
     unsafe_allow_html=True,
