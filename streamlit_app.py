@@ -60,7 +60,7 @@ SHOW_PERCENTAGES = True
 # -----------------------------
 # CATEGORIAS
 # -----------------------------
-   CATEGORIES: List[str] = [
+CATEGORIES: List[str] = [
     "Sentido de Compromisso de Ferro 🤝",
     "Cérebro da Equipa (Mais Competência) 🧠",
     "Coração da Equipa (Mais Espírito de Equipa) ❤️",
@@ -70,7 +70,7 @@ SHOW_PERCENTAGES = True
     "Pessoa Mais Confiável 🔒",
     "Megafone da Comunicação 📣",
     "Mais Nhonhinha da Equipa 🧸",
-    "Resolve Tudo Antes de Ser Problema 🛠️"
+    "Resolve Tudo Antes de Ser Problema 🛠️",
 ]
 
 # -----------------------------
