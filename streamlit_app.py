@@ -61,16 +61,17 @@ SHOW_PERCENTAGES = True
 # CATEGORIAS
 # -----------------------------
 CATEGORIES: List[str] = [
-    "Compromisso",
-    "Competência",
-    "Equipa",
-    "Mau Feitio 😈",
-    "Bom Feitio 😇",
-    "Evolve 🚀",
-    "Confiança",
-    "Comunicação",
-    "Nhonhinhas 🧸",
-    "Resolve Tudo 🛠️",
+    "Compromisso de Aço (Mais Sentido de Compromisso) 🤝",
+    "Mente Brilhante (Mais Competência) 🧠",
+    "Coração da Equipa (Mais Espírito de Equipa) ❤️",
+    "Mau Feitio Oficial (Mais Mau Feitio) 😈",
+    "Boa Vibração (Mais Bom Feitio) 😇",
+    "Motor da Evolução (Quem mais faz a equipa evoluir) 🚀",
+    "Confiança Total (Pessoa mais confiável) 🔒",
+    "Megafone da Equipa (Mais Comunicação) 📣",
+    "Nhonhinha Oficial (Mais Nhonhinha) 🧸",
+    "Resolve-Tudo (Resolve Tudo) 🛠️",
+]
 ]
 
 # -----------------------------
@@ -727,8 +728,7 @@ st.sidebar.write("**CPCecho Awards**")
 st.sidebar.caption("Built by SmartLabs @ CPCecho")
 st.sidebar.caption(f"Categorias: {len(CATEGORIES)}")
 st.sidebar.caption(f"Colaboradores: {len(EMPLOYEES)}")
-st.sidebar.caption("Use 'QR Code' para o ecrã do evento.")
-st.sidebar.caption("Use 'Live Presentation' para a apresentação.")
+
 
 if page == "Vote":
     render_vote_page()
