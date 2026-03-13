@@ -335,7 +335,7 @@ def generate_qr_image(url: str) -> BytesIO:
 def show_header() -> None:
     st.markdown(
         """
-<style>
+        <style>
         .header-container {
             background-color: rgba(255, 255, 255, 0.9);
             box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
@@ -357,22 +357,23 @@ def show_header() -> None:
             font-size: 1rem;
             margin: 0;
         }
-</style>
+        </style>
         """,
         unsafe_allow_html=True,
     )
+   
     # Cabeçalho com setas de navegação no topo direito
     st.markdown(
         '''<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
-<div style="display:flex;align-items:center;gap:16px;">
-<div style="flex-shrink:0;font-size:2.5rem;line-height:1;">🏆</div>
-<div>
-<h1 class="header-title" style="margin:0;">CPCecho Awards</h1>
-<p class="header-subtitle" style="margin:0;">Powered by SmartLabs @ CPCecho 😎</p>
-</div>
-</div>
-<div id="header-nav-arrows"></div>
-</div>''',
+            <div style="display:flex;align-items:center;gap:16px;">
+                <div style="flex-shrink:0;font-size:2.5rem;line-height:1;">🏆</div>
+                <div>
+                    <h1 class="header-title" style="margin:0;">CPCecho Awards</h1>
+                    <p class="header-subtitle" style="margin:0;">Powered by SmartLabs @ CPCecho 😎</p>
+                </div>
+            </div>
+            <div id="header-nav-arrows"></div>
+        </div>''',
         unsafe_allow_html=True,
     )
  
@@ -383,11 +384,11 @@ def show_header() -> None:
 def render_vote_page() -> None:
     show_header()
     st.subheader("📱 Votar")
-    st.write("Uma pergunta de cada vez. Sem spoilers. Sem batota. Só vibes SmartLabs.")
+    st.write("Uma pergunta de cada vez. Sem spoilers. Sem batota.")
  
     voter_id = st.text_input(
         "O teu identificador",
-        placeholder="Ex: email ou código de colaborador",
+        placeholder="Ex: email",
         help=(
             f"Se REQUIRE_COMPANY_EMAIL = True, tens de usar @{EMAIL_DOMAIN}."
             if REQUIRE_COMPANY_EMAIL
@@ -471,7 +472,6 @@ def render_vote_page() -> None:
 def render_qr_page() -> None:
     show_header()
     st.subheader("🔳 QR Code")
-    st.write("Projeta isto no ecrã para o pessoal votar no telemóvel.")
  
     app_url = st.text_input("URL pública da app", value=APP_URL)
  
@@ -481,16 +481,18 @@ def render_qr_page() -> None:
  
     qr_img = generate_qr_image(app_url)
  
-    left, right = st.columns([1, 1])
+    left, center = st.columns([1, 2])
  
     with left:
         st.image(qr_img, caption="Scan me. Vote. Be legendary.", width=320)
  
-    with right:
+    with center:
         st.markdown("### CPCecho Awards")
-        st.markdown("**Built with mischief by SmartLabs @ CPCecho** 🤖")
-        st.markdown("Aponta a câmara, abre o link e começa a votar.")
-        st.code(app_url)
+        st.markdown("Neste evento serão atribuidos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.")
+       
+        st.markdown("### Como Votar?")
+        st.markdown("Faz scan do QR code, insere o teu email, escolhe um colega para cada categoria e submete o voto.")
+        st.markdown("Fácil, rápido e divertido.")
  
  
 # =========================================================
@@ -531,63 +533,10 @@ def render_live_page() -> None:
     reveal = get_reveal_results()
     votes_df = load_votes()
  
-    # ── Fundo CPC azul ─────────────────────────────────────
-    st.markdown(
-        """
-<style>
-        [data-testid="stAppViewContainer"],
-        [data-testid="stAppViewContainer"] > div:first-child,
-        [data-testid="stMain"],
-        .main {
-            background-color: #0f2d45 !important;
-        }
-        [data-testid="stHeader"] {
-            background-color: #0f2d45 !important;
-        }
-        [data-testid="stToolbar"] {
-            background-color: #0f2d45 !important;
-        }
-        /* Header card branco do show_header */
-        .header-container {
-            background-color: rgba(255,255,255,0.05) !important;
-            box-shadow: none !important;
-        }
-        .header-title {
-            color: #FFFFFF !important;
-        }
-        .header-subtitle {
-            color: #8b9ab0 !important;
-        }
-        /* Sidebar */
-        [data-testid="stSidebar"] {
-            background-color: #0a1e2e !important;
-        }
-        [data-testid="stSidebar"] * {
-            color: #8b9ab0 !important;
-        }
-        /* Botões streamlit sobre fundo escuro */
-        .stButton > button {
-            background-color: rgba(255,255,255,0.12) !important;
-            color: #FFFFFF !important;
-            border: 1px solid rgba(255,255,255,0.2) !important;
-        }
-        .stButton > button:hover {
-            background-color: rgba(255,255,255,0.22) !important;
-        }
-        .stButton > button[kind="primary"] {
-            background-color: #6BAE8A !important;
-            border-color: #6BAE8A !important;
-            color: #0f3a52 !important;
-        }
-</style>
-        """,
-        unsafe_allow_html=True,
-    )
- 
     # ── CSS específico das setas no header e olho na categoria ───────
     st.markdown(
         """
-<style>
+        <style>
         /* Setas + olho no header — 2ª, 3ª e 4ª colunas do 1º bloco horizontal */
         [data-testid="stHorizontalBlock"]:first-of-type [data-testid="stColumn"]:nth-child(2) button,
         [data-testid="stHorizontalBlock"]:first-of-type [data-testid="stColumn"]:nth-child(3) button,
@@ -614,7 +563,7 @@ def render_live_page() -> None:
         [data-testid="stHorizontalBlock"]:first-of-type [data-testid="stColumn"]:nth-child(3) button:disabled {
             opacity: 0.2 !important;
         }
-</style>
+        </style>
         """,
         unsafe_allow_html=True,
     )
@@ -663,7 +612,6 @@ def render_live_page() -> None:
             '<div style="text-align:center;padding:32px 0;">'
             '<div style="font-size:3rem;margin-bottom:12px;">🎭</div>'
             '<div style="color:#FFFFFF;font-size:1.3rem;font-weight:700;margin-bottom:8px;">Votação a decorrer</div>'
-            '<div style="color:#8b9ab0;font-size:0.95rem;">A audiência está a votar. Carrega no <strong style="color:#6BAE8A;">👁</strong> quando estiverem prontos.</div>'
             '</div>'
         )
     else:
@@ -759,7 +707,27 @@ def render_final_summary_page() -> None:
         if not SHOW_PERCENTAGES:
             display_df = display_df[["Colaborador", "Votos"]]
  
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        cols = display_df.columns.tolist()
+        header_cells = "".join(
+            f'<th style="background:#1a3348;color:#FFFFFF;padding:10px 16px;text-align:left;font-weight:700;border-bottom:2px solid rgba(255,255,255,0.2);">{c}</th>'
+            for c in cols
+        )
+        rows_html = ""
+        for i, row in display_df.iterrows():
+            bg = "#203c52" if i % 2 == 0 else "#1a3045"
+            cells = "".join(
+                f'<td style="padding:9px 16px;color:#FFFFFF;border-bottom:1px solid rgba(255,255,255,0.08);">{row[c]}</td>'
+                for c in cols
+            )
+            rows_html += f'<tr style="background:{bg};">{cells}</tr>'
+ 
+        st.markdown(
+            f'<table style="width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;">'
+            f'<thead><tr>{header_cells}</tr></thead>'
+            f'<tbody>{rows_html}</tbody>'
+            f'</table>',
+            unsafe_allow_html=True,
+        )
         st.divider()
  
  
@@ -828,7 +796,26 @@ def render_admin_page() -> None:
             file_name="cpcecho_awards_votes.csv",
             mime="text/csv",
         )
-        st.dataframe(votes_df, use_container_width=True, hide_index=True)
+        cols = votes_df.columns.tolist()
+        header_cells = "".join(
+            f'<th style="background:#1a3348;color:#FFFFFF;padding:10px 16px;text-align:left;font-weight:700;border-bottom:2px solid rgba(255,255,255,0.2);">{c}</th>'
+            for c in cols
+        )
+        rows_html = ""
+        for i, row in votes_df.iterrows():
+            bg = "#203c52" if i % 2 == 0 else "#1a3045"
+            cells = "".join(
+                f'<td style="padding:9px 16px;color:#FFFFFF;border-bottom:1px solid rgba(255,255,255,0.08);">{row[c]}</td>'
+                for c in cols
+            )
+            rows_html += f'<tr style="background:{bg};">{cells}</tr>'
+        st.markdown(
+            f'<table style="width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;">'
+            f'<thead><tr>{header_cells}</tr></thead>'
+            f'<tbody>{rows_html}</tbody>'
+            f'</table>',
+            unsafe_allow_html=True,
+        )
  
     st.write("### Danger zone ☠️")
     confirm_reset = st.checkbox("Confirmo que quero apagar todos os votos")
@@ -852,52 +839,110 @@ init_db()
 # Pequenos ajustes visuais.
 st.markdown(
     """
-<style>
+    <style>
         .block-container {padding-top: 1.2rem; padding-bottom: 2rem;}
         div[data-testid="stMetricValue"] {font-size: 2rem;}
-        /* Adaptação ao design do site CPCecho */
-        :root {
-            --primary-color: #174E6D;
-            --secondary-color: #216390;
-            --accent-color: #FF4357;
-            --background-color: #FFFFFF;
-            --text-color: #216390;
-            --font-family: 'Lato', sans-serif;
+ 
+        /* ── Fundo CPC azul (global) ── */
+        [data-testid="stAppViewContainer"],
+        [data-testid="stAppViewContainer"] > div:first-child,
+        [data-testid="stMain"],
+        .main {
+            background-color: #0f2d45 !important;
         }
-        body {
-            font-family: var(--font-family);
-            color: var(--text-color);
+        [data-testid="stHeader"] {
+            background-color: #0f2d45 !important;
         }
-        .stButton button {
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 100px;
-            border: none;
-            font-family: var(--font-family);
+        [data-testid="stToolbar"] {
+            background-color: #0f2d45 !important;
         }
-        .stButton button:hover {
-            background-color: var(--secondary-color);
+ 
+        /* Header card */
+        .header-container {
+            background-color: rgba(255,255,255,0.05) !important;
+            box-shadow: none !important;
         }
-        .stTextInput input, .stSelectbox select, .stTextArea textarea {
-            border-radius: 8px;
-            border: 1px solid #ddd;
+        .header-title {
+            color: #FFFFFF !important;
         }
-        .stSidebar {
-            background-color: #f9f9f9;
+        .header-subtitle {
+            color: #8b9ab0 !important;
+        }
+ 
+        /* Sidebar */
+        [data-testid="stSidebar"] {
+            background-color: #0a1e2e !important;
+        }
+        [data-testid="stSidebar"] * {
+            color: #8b9ab0 !important;
+        }
+ 
+        /* Texto geral sobre fundo escuro */
+        body, p, span, label, div {
+            color: #FFFFFF;
+            font-family: 'Lato', sans-serif;
         }
         h1, h2, h3, h4, h5, h6 {
-            color: var(--primary-color);
-            font-family: var(--font-family);
+            color: #FFFFFF !important;
+            font-family: 'Lato', sans-serif;
         }
-        .stSuccess, .stInfo, .stWarning, .stError {
+ 
+        /* Inputs de texto */
+        .stTextInput input, .stTextArea textarea,
+        [data-baseweb="input"] > div {
+            background-color: #163a52 !important;
+            color: #FFFFFF !important;
             border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2) !important;
         }
+ 
+        /* Selectbox — azul */
+        .stSelectbox select,
+        [data-baseweb="select"] > div:first-child,
+        [data-baseweb="popover"] [role="listbox"],
+        [data-baseweb="menu"],
+        [data-baseweb="popover"] ul {
+            background-color: #163a52 !important;
+            color: #FFFFFF !important;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.18) !important;
+        }
+ 
+/* Botões sobre fundo escuro */
+        .stButton > button {
+            background-color: rgba(255,255,255,0.12) !important;
+            color: #FFFFFF !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+            border-radius: 100px;
+        }
+        .stButton > button:hover {
+            background-color: rgba(255,255,255,0.22) !important;
+        }
+        .stButton > button[kind="primary"] {
+            background-color: #6BAE8A !important;
+            border-color: #6BAE8A !important;
+            color: #0f3a52 !important;
+        }
+ 
+        /* Tabelas (st.dataframe) */
+        .dvn-scroller,
+        [data-testid="glideDataEditor"],
+        .glide-data-grid,
+        .glide-data-grid-data-editor {
+            background-color: #203c52 !important;
+        }
+ 
+        /* Métricas */
         .stMetric {
-            background-color: #f0f8ff;
+            background-color: rgba(255,255,255,0.07);
             border-radius: 8px;
             padding: 10px;
         }
-</style>
+ 
+        .stSuccess, .stInfo, .stWarning, .stError {
+            border-radius: 8px;
+        }
+    </style>
     """,
     unsafe_allow_html=True,
 )
@@ -928,3 +973,4 @@ elif page == "Final Summary":
     render_final_summary_page()
 else:
     render_admin_page()
+ 
