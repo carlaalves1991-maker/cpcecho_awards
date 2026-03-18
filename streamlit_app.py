@@ -336,10 +336,15 @@ def show_header() -> None:
         """,
         unsafe_allow_html=True,
     )
-    # Não mostrar o logo em imagem (não mostrar ícone também).
-    logo_html = ''
+    # Mostrar o logo (quando disponível) ao lado do título.
+    logo_html = (
+        f'<img src="data:image/jpeg;base64,{LOGO_B64}" '
+        f'style="height:64px;width:64px;object-fit:contain;flex-shrink:0;" alt="Logo">'
+        if LOGO_B64
+        else ''
+    )
     st.markdown(
-        f'<div class="header-container" style="display:flex;align-items:flex-start;gap:4px;">'
+        f'<div class="header-container" style="display:flex;align-items:flex-start;gap:12px;">'
         f'{logo_html}'
         f'<div><h1 class="header-title">CPCECHO Awards</h1>'
         f'<p class="header-subtitle">Powered by SmartLabs @ CPCECHO 😎</p></div></div>',
@@ -633,7 +638,12 @@ def render_live_page(standalone: bool = False) -> None:
     # ── Header com setas + olho na mesma linha ───────────────────────
     hcol_title, hcol_prev, hcol_next, hcol_eye = st.columns([10, 0.55, 0.55, 0.55])
     with hcol_title:
-        live_logo_html = ''
+        live_logo_html = (
+            f'<img src="data:image/jpeg;base64,{LOGO_B64}" '
+            f'style="height:52px;width:52px;object-fit:contain;flex-shrink:0;filter:brightness(0) invert(1);" alt="Logo">'
+            if LOGO_B64
+            else ''
+        )
         st.markdown(
             f'<div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px 0;">'
             f'{live_logo_html}'
