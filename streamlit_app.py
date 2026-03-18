@@ -432,6 +432,11 @@ def render_qr_page() -> None:
     if not app_url:
         st.warning("Adiciona a URL pública da app.")
         return
+
+    # Link de apresentação standalone (sem menu)
+    base_url = app_url.split("?")[0]
+    present_url = f"{base_url}?mode=present"
+
     qr_img = generate_qr_image(app_url)
     qr_b64 = base64.b64encode(qr_img.read()).decode()
     st.markdown(
@@ -477,7 +482,7 @@ def render_qr_page() -> None:
             font-size: 1rem;
             margin-bottom: 16px;
         }}
-        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QCode" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCECHO Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QCode, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p></div></div>
+        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QCode" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCECHO Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QCode, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p><p><a href="{present_url}" target="_blank" style="color:#6BAE8A;">Ir para a apresentação</a></p></div></div>
         """,
         unsafe_allow_html=True,
     )
@@ -507,7 +512,7 @@ def build_results_for_category(votes_df: pd.DataFrame, category: str) -> pd.Data
 # =========================================================
 # UI - APRESENTAÇÃO AO VIVO
 # =========================================================
-def render_live_page() -> None:
+def render_live_page(standalone: bool = False) -> None:
     current_index = get_presentation_index()
     current_category = CATEGORIES[current_index]
     reveal = get_reveal_results()
@@ -564,6 +569,17 @@ def render_live_page() -> None:
         """,
         unsafe_allow_html=True,
     )
+    if standalone:
+        st.markdown(
+            """
+            <style>
+            [data-testid='stSidebar'] {display: none !important;}
+            [data-testid='stToolbar'] {display: none !important;}
+            [data-testid='stHeader'] {display: none !important;}
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
     # ── CSS específico das setas no header e olho na categoria ───────
     st.markdown(
         """
@@ -941,6 +957,9 @@ st.markdown(
 )
 if mode == "vote":
     page = "Vote"
+elif mode == "present":
+    render_live_page(standalone=True)
+    st.stop()
 else:
     page = st.sidebar.radio(
         "Navigation",
