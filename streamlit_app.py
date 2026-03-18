@@ -7,7 +7,6 @@ from typing import List
 import pandas as pd
 import qrcode
 import streamlit as st
-from streamlit_autorefresh import st_autorefresh
 
 # =========================================================
 # SMARTLABS @ CPCecho - Awards App
@@ -30,7 +29,7 @@ from streamlit_autorefresh import st_autorefresh
 # =========================================================
 
 st.set_page_config(
-    page_title="CPCECHO Awards by SmartLabs",
+    page_title="CPCecho Awards by SmartLabs",
     page_icon="🏆",
     layout="wide",
 )
@@ -41,8 +40,8 @@ mode = query_params.get("mode", "full")
 # -----------------------------
 # CONFIGURAÇÃO GERAL
 # -----------------------------
-APP_TITLE = "CPCECHO Awards"
-APP_SUBTITLE = "Powered by SmartLabs @ CPCecho - Inovação que faz a diferença! 🚀✨"
+APP_TITLE = "CPCecho Awards"
+APP_SUBTITLE = "Powered by SmartLabs @ CPCecho 😎"
 DB_PATH = Path("cpcecho_awards.db")
 
 # Coloca aqui o link público quando tiveres um.
@@ -53,6 +52,7 @@ ADMIN_CODE = "cpcecho2026"
 
 # Se quiseres obrigar email da empresa, muda para True.
 EMAIL_DOMAIN = "cpcecho.com"
+REQUIRE_COMPANY_EMAIL = False
 
 # Se quiseres mostrar percentagens nas tabelas finais.
 SHOW_PERCENTAGES = True
@@ -233,15 +233,14 @@ def get_nominees(category: str) -> List[str]:
 def save_vote(voter_id: str, category: str, employee: str) -> str:
     """Guarda um voto e devolve:
     - 'ok' se guardou
-    - 'duplicate' se essa pessoa já votou nessa categoria (but now allows update)
+    - 'duplicate' se essa pessoa já votou nessa categoria
     """
     voter_id = normalize_voter_id(voter_id)
     conn = get_conn()
 
     try:
-        # Use INSERT OR REPLACE to allow updating votes
         conn.execute(
-            "INSERT OR REPLACE INTO votes (voter_id, category, employee) VALUES (?, ?, ?)",
+            "INSERT INTO votes (voter_id, category, employee) VALUES (?, ?, ?)",
             (voter_id, category, employee),
         )
         conn.commit()
@@ -365,7 +364,7 @@ def show_header() -> None:
    
     # Cabeçalho com setas de navegação no topo direito
     st.markdown(
-        '''<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;"><div style="display:flex;align-items:center;gap:16px;"><div style="flex-shrink:0;font-size:2.5rem;line-height:1;">🏆</div><div><h1 class="header-title" style="margin:0;">CPCECHO Awards</h1><p class="header-subtitle" style="margin:0;">Powered by SmartLabs @ CPCecho 😎</p></div></div><div id="header-nav-arrows"></div></div>''',
+        '''<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;"><div style="display:flex;align-items:center;gap:16px;"><div style="flex-shrink:0;font-size:2.5rem;line-height:1;">🏆</div><div><h1 class="header-title" style="margin:0;">CPCecho Awards</h1><p class="header-subtitle" style="margin:0;">Powered by SmartLabs @ CPCecho 😎</p></div></div><div id="header-nav-arrows"></div></div>''',
         unsafe_allow_html=True,
     )
 
@@ -379,8 +378,8 @@ def render_vote_page() -> None:
     st.write("Uma pergunta de cada vez. Sem spoilers. Sem batota.")
 
     voter_id = st.text_input(
-        "O teu email",
-        placeholder="Ex: nome@cpcecho.com",
+        "O teu identificador",
+        placeholder="Ex: email",
         help=(
             f"Se REQUIRE_COMPANY_EMAIL = True, tens de usar @{EMAIL_DOMAIN}."
             if REQUIRE_COMPANY_EMAIL
@@ -447,7 +446,6 @@ def render_vote_page() -> None:
     # Mostra apenas a próxima categoria que falta.
     current_category = remaining[0]
     nominees = get_nominees(current_category)
-    nominees_with_skip = nominees + ["Skip this category"]
 
     st.progress(
         len(completed) / len(CATEGORIES),
@@ -457,16 +455,16 @@ def render_vote_page() -> None:
     st.markdown(f"## {current_category}")
 
     selected_employee = st.selectbox(
-        "Escolhe 1 colega ou skip",
-        nominees_with_skip,
+        "Escolhe 1 colega",
+        nominees,
         index=None,
-        placeholder="Seleciona um nome ou skip",
+        placeholder="Seleciona um nome",
         key=f"vote_{current_category}",
     )
 
     if st.button("Submeter e continuar", use_container_width=True, type="primary"):
         if not selected_employee:
-            st.warning("Escolhe um colega ou skip antes de submeter.")
+            st.warning("Escolhe um colega antes de submeter.")
             st.stop()
 
         result = save_vote(voter_id, current_category, selected_employee)
@@ -475,7 +473,7 @@ def render_vote_page() -> None:
             st.success("Voto registado com sucesso ✅")
             st.rerun()
         else:
-            st.error("Erro ao registar voto.")
+            st.error("Este identificador já votou nesta categoria.")
 
 
 # =========================================================
@@ -539,7 +537,7 @@ def render_qr_page() -> None:
             font-size: 1rem;
             margin-bottom: 16px;
         }}
-        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QR Code" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCECHO Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QR code, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p><p><a href="{app_url.replace('mode=vote', 'mode=live')}" target="_blank" style="color:#6BAE8A;">Ver apresentação em full screen</a></p></div></div>
+        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QR Code" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCecho Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QR code, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p></div></div>
         """,
         unsafe_allow_html=True,
     )
@@ -551,9 +549,6 @@ def render_qr_page() -> None:
 def build_results_for_category(votes_df: pd.DataFrame, category: str) -> pd.DataFrame:
     # Filtra só os votos da categoria atual.
     category_df = votes_df[votes_df["category"] == category]
-
-    # Exclude skips
-    category_df = category_df[category_df["employee"] != "Skip this category"]
 
     if category_df.empty:
         return pd.DataFrame(columns=["employee", "votes", "percentage"])
@@ -581,9 +576,6 @@ def build_results_for_category(votes_df: pd.DataFrame, category: str) -> pd.Data
 # =========================================================
 
 def render_live_page() -> None:
-    # Auto refresh every 10 seconds
-    st_autorefresh(interval=10 * 1000, key="live_refresh")
-
     current_index = get_presentation_index()
     current_category = CATEGORIES[current_index]
     reveal = get_reveal_results()
@@ -685,7 +677,7 @@ def render_live_page() -> None:
             '<div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px 0;">'
             '<span style="font-size:2.5rem;line-height:1;">🏆</span>'
             '<div>'
-            '<h1 style="color:#FFFFFF;font-size:2.5rem;margin:0;line-height:1.1;font-family:\'Lato\',sans-serif;">CPCECHO Awards</h1>'
+            '<h1 style="color:#FFFFFF;font-size:2.5rem;margin:0;line-height:1.1;font-family:\'Lato\',sans-serif;">CPCecho Awards</h1>'
             '<p style="color:#8b9ab0;font-size:1rem;margin:0;font-family:\'Lato\',sans-serif;">Powered by SmartLabs @ CPCecho 😎</p>'
             '</div></div>',
             unsafe_allow_html=True,
@@ -714,7 +706,7 @@ def render_live_page() -> None:
     )
 
     total_votes = len(votes_df[votes_df["category"] == current_category])
-    # votes_label = f'{total_votes} voto{"s" if total_votes != 1 else ""}'
+    votes_label = f'{total_votes} voto{"s" if total_votes != 1 else ""}'
 
     if not reveal:
         card_content = (
@@ -767,6 +759,7 @@ def render_live_page() -> None:
         f'<div style="background:#071828;border-radius:16px;padding:28px 32px;">'
         f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
         f'<h2 style="color:#FFFFFF;font-size:clamp(1.4rem,2.5vw,2rem);font-weight:800;margin:0;">{current_category}</h2>'
+        f'<span style="color:#6BAE8A;font-size:1.4rem;font-weight:700;">{votes_label}</span>'
         f'</div>'
         f'<hr style="border-color:rgba(255,255,255,0.15);margin:12px 0 20px 0;">'
         f'{card_content}'
@@ -781,7 +774,7 @@ def render_live_page() -> None:
 def render_final_summary_page() -> None:
     show_header()
     st.subheader("📊 Resumo final")
-    st.write("Aqui tens os vencedores de todas as categorias.")
+    st.write("Aqui tens o ranking completo de todas as categorias.")
 
     votes_df = load_votes()
 
@@ -793,33 +786,49 @@ def render_final_summary_page() -> None:
     s1.metric("Total de votos", len(votes_df))
     s2.metric("Votantes únicos", votes_df["voter_id"].nunique())
 
-    # Create responsive cards for winners
-    winners = []
-    for category in CATEGORIES:
-        results = build_results_for_category(votes_df, category)
-        if not results.empty:
-            winner = results.iloc[0]["employee"]
-            winner_votes = int(results.iloc[0]["votes"])
-            winners.append((category, winner, winner_votes))
+    for idx, category in enumerate(CATEGORIES, start=1):
+        st.markdown(f"## {idx}. {category}")
 
-    if winners:
-        # Display in a grid, responsive
-        cols = st.columns(2)  # 2 columns for desktop, but make responsive with CSS
-        for i, (category, winner, votes) in enumerate(winners):
-            with cols[i % 2]:
-                st.markdown(
-                    f"""
-                    <div style="background:#071828;border-radius:16px;padding:20px;margin-bottom:20px;text-align:center;">
-                        <h3 style="color:#FFFFFF;font-size:1.2rem;margin-bottom:10px;">{category}</h3>
-                        <div style="font-size:2rem;margin:10px 0;">🏆</div>
-                        <h4 style="color:#6BAE8A;margin:0;">{winner}</h4>
-                        <p style="color:#8b9ab0;margin:5px 0 0 0;">{votes} votos</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-    else:
-        st.info("Ainda não há vencedores.")
+        results = build_results_for_category(votes_df, category)
+
+        if results.empty:
+            st.caption("Ainda sem votos.")
+            st.divider()
+            continue
+
+        winner = results.iloc[0]["employee"]
+        winner_votes = int(results.iloc[0]["votes"])
+
+        st.success(f"Vencedor atual: {winner} com {winner_votes} votos")
+
+        display_df = results.rename(
+            columns={"employee": "Colaborador", "votes": "Votos", "percentage": "%"}
+        )
+
+        if not SHOW_PERCENTAGES:
+            display_df = display_df[["Colaborador", "Votos"]]
+
+        cols = votes_df.columns.tolist()
+        header_cells = "".join(
+            f'<th style="background:#1a3348;color:#FFFFFF;padding:10px 16px;text-align:left;font-weight:700;border-bottom:2px solid rgba(255,255,255,0.2);">{c}</th>'
+            for c in cols
+        )
+        rows_html = ""
+        for i, row in votes_df.iterrows():
+            bg = "#203c52" if i % 2 == 0 else "#1a3045"
+            cells = "".join(
+                f'<td style="padding:9px 16px;color:#FFFFFF;border-bottom:1px solid rgba(255,255,255,0.08);">{row[c]}</td>'
+                for c in cols
+            )
+            rows_html += f'<tr style="background:{bg};">{cells}</tr>'
+        st.markdown(
+            f'<table style="width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;">'
+            f'<thead><tr>{header_cells}</tr></thead>'
+            f'<tbody>{rows_html}</tbody>'
+            f'</table>',
+            unsafe_allow_html=True,
+        )
+        st.divider()
 
 
 # =========================================================
@@ -1055,7 +1064,7 @@ else:
     )
 
 st.sidebar.markdown("---")
-st.sidebar.write("**CPCECHO Awards**")
+st.sidebar.write("**CPCecho Awards**")
 st.sidebar.caption("Built by SmartLabs @ CPCecho")
 st.sidebar.caption(f"Categorias: {len(CATEGORIES)}")
 st.sidebar.caption(f"Colaboradores: {len(EMPLOYEES)}")
