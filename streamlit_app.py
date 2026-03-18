@@ -10,12 +10,21 @@ import streamlit as st
 
 # Logo em base64 para usar em qualquer contexto HTML
 def _load_logo_b64() -> str:
-    logo_path = Path(__file__).parent / "logo.jpg"
+    logo_path = Path(__file__).parent / "cpcecho.png"
     if logo_path.exists():
         return base64.b64encode(logo_path.read_bytes()).decode()
     return ""
 
 LOGO_B64 = _load_logo_b64()
+
+# Logo em base64 para usar em qualquer contexto HTML
+def _load_logosm_b64() -> str:
+    logo_path = Path(__file__).parent / "logo.jpg"
+    if logo_path.exists():
+        return base64.b64encode(logo_path.read_bytes()).decode()
+    return ""
+
+LOGOSM_B64 = _load_logosm_b64()
 # =========================================================
 # SMARTLABS @ CPCECHO - Awards App
 # =========================================================
@@ -337,15 +346,19 @@ def show_header() -> None:
         unsafe_allow_html=True,
     )
     logo_html = (
-        f'<img src="data:image/jpeg;base64,{LOGO_B64}" style="height:96px;width:96px;object-fit:contain;flex-shrink:0;" alt="Logo">'
+        f'<img src="data:image/jpeg;base64,{LOGO_B64}" style="height:80px;width:96px;object-fit:contain;flex-shrink:0;" alt="Logo">'
         if LOGO_B64 else
         '<span style="font-size:2rem;line-height:1;">🏆</span>'
     )
+    # Adiciona o logo à frente de 'Powered by SmartLabs '
     st.markdown(
         f'<div class="header-container" style="display:flex;align-items:flex-start;gap:4px;">'
         f'{logo_html}'
         f'<div><h1 class="header-title">CPCECHO Awards</h1>'
-        f'<p class="header-subtitle">Powered by SmartLabs @ CPCECHO 😎</p></div></div>',
+        f'<span style="display:flex;align-items:center;gap:1px;margin-top:2px;">'
+        f'<span style="font-size:1.25rem;font-weight:700;color:#216390;line-height:1.1;">Powered by SmartLabs</span>'
+        f'<img src="data:image/jpeg;base64,{LOGOSM_B64}" style="height:2.5em;width:auto;vertical-align:middle;margin-left:0.2em;" alt="Logo">'
+        f'</span></div></div>',
         unsafe_allow_html=True,
     )
 # =========================================================
@@ -354,25 +367,44 @@ def show_header() -> None:
 def render_vote_page() -> None:
     show_header()
     st.subheader("📱 Votar")
-    st.write("Uma pergunta de cada vez. Sem spoilers. Sem batota.")
-    voter_id = st.text_input(
-        "O teu email",
-        placeholder="Ex: email@cpcecho.pt",
-        help=(
-            f"Se REQUIRE_COMPANY_EMAIL = True, tens de usar @{EMAIL_DOMAIN}."
-            if REQUIRE_COMPANY_EMAIL
-            else "Podes usar email ou código de colaborador."
-        ),
-    )
-    if not voter_id:
-        st.info("Introduz o teu email para começar.")
-        return
-    if not is_allowed_voter_id(voter_id):
-        if REQUIRE_COMPANY_EMAIL:
-            st.error(f"Usa o teu email da empresa (@{EMAIL_DOMAIN}).")
-        else:
-            st.error("Introduz um email válido.")
-        return
+    # Estado para guardar o email validado
+    if "voter_id_valid" not in st.session_state:
+        st.session_state.voter_id_valid = False
+    if "voter_id" not in st.session_state:
+        st.session_state.voter_id = ""
+
+    if not st.session_state.voter_id_valid:
+        st.write("Uma pergunta de cada vez. Sem spoilers. Sem batota.")
+        with st.form(key="email_form", clear_on_submit=False):
+            voter_id = st.text_input(
+                "O teu email",
+                value=st.session_state.voter_id,
+                placeholder="Ex: email@cpcecho.pt",
+                help=(
+                    f"Se REQUIRE_COMPANY_EMAIL = True, tens de usar @{EMAIL_DOMAIN}."
+                    if REQUIRE_COMPANY_EMAIL
+                    else "Podes usar email ou código de colaborador."
+                ),
+            )
+            submit_email = st.form_submit_button("Começar")
+            if submit_email:
+                st.session_state.voter_id = voter_id
+                if not voter_id:
+                    st.info("Introduz o teu email para começar.")
+                    st.stop()
+                if not is_allowed_voter_id(voter_id):
+                    if REQUIRE_COMPANY_EMAIL:
+                        st.error(f"Usa o teu email da empresa (@{EMAIL_DOMAIN}).")
+                    else:
+                        st.error("Introduz um email válido.")
+                    st.stop()
+                # Email válido, avança
+                st.session_state.voter_id_valid = True
+                st.rerun()
+        if not st.session_state.voter_id_valid:
+            return
+
+    voter_id = st.session_state.voter_id
     voter_key = normalize_voter_id(voter_id)
     votes_df = load_votes()
     # Descobre em que categorias esta pessoa já votou.
@@ -383,19 +415,27 @@ def render_vote_page() -> None:
         )
     remaining = [category for category in CATEGORIES if category not in already_voted]
     completed = [category for category in CATEGORIES if category in already_voted]
+    # Inicializa skipped antes de qualquer uso
+    if "skipped_categories" not in st.session_state:
+        st.session_state.skipped_categories = []
+    skipped = st.session_state.skipped_categories
     st.markdown(
-            f'<p style="color:#8b9ab0;font-size:0.85rem;margin-bottom:16px;">'
-            f'Respondidas: <strong>{len(completed)}</strong> &nbsp;·&nbsp; Por responder: <strong>{len(remaining)}</strong>'
-            f'</p>',
-            unsafe_allow_html=True,
-        )
-    # Quando termina tudo, mostramos resumo pessoal.
-    if not remaining:
+        f'<p style="color:#8b9ab0;font-size:0.85rem;margin-bottom:16px;">'
+        f'Respondidas: <strong>{len(completed)}</strong> &nbsp;·&nbsp; Por responder: <strong>{len(remaining)}</strong>'
+        f'</p>',
+        unsafe_allow_html=True,
+    )
+    # Se não houver mais categorias para votar (todas respondidas ou saltadas), mostra sempre o resumo e opção de alterar votos
+    if not remaining or (len(completed) + len(skipped) == len(CATEGORIES)):
         st.success("Já respondeste a tudo. Missão cumprida. 🏁")
         my_votes = votes_df[votes_df["voter_id"] == voter_key][["category", "employee"]].copy()
         my_votes.columns = ["Categoria", "O teu voto"]
         st.write("### O teu resumo final")
         render_light_table(my_votes)
+        # Limpa skipped_categories para não voltar ao fluxo de votação após refresh
+        if "skipped_categories" in st.session_state:
+            del st.session_state["skipped_categories"]
+        # Opção de alterar votos removida conforme solicitado
         return
     # Mostra apenas a próxima categoria que falta.
     # Categorias saltadas são ignoradas definitivamente.
@@ -799,34 +839,6 @@ def render_admin_page() -> None:
     current_index = get_presentation_index()
     current_category = CATEGORIES[current_index]
     reveal = get_reveal_results()
-    st.write("### Controlo da apresentação")
-    st.write(f"Categoria atual: **{current_index + 1}. {current_category}**")
-    st.write(f"Resultados visíveis: **{'Sim' if reveal else 'Não'}**")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        if st.button("Reset categoria 1", use_container_width=True):
-            set_presentation_index(0)
-            set_reveal_results(False)
-            st.rerun()
-    with col2:
-        if st.button("Back", use_container_width=True, disabled=current_index == 0):
-            set_presentation_index(current_index - 1)
-            set_reveal_results(False)
-            st.rerun()
-    with col3:
-        if st.button("Next", use_container_width=True, disabled=current_index == len(CATEGORIES) - 1):
-            set_presentation_index(current_index + 1)
-            set_reveal_results(False)
-            st.rerun()
-    with col4:
-        if not reveal:
-            if st.button("Ver", use_container_width=True):
-                set_reveal_results(True)
-                st.rerun()
-        else:
-            if st.button("Esconder", use_container_width=True):
-                set_reveal_results(False)
-                st.rerun()
     st.write("### Exportar votos")
     votes_df = load_votes()
     if votes_df.empty:
@@ -840,6 +852,27 @@ def render_admin_page() -> None:
             mime="text/csv",
         )
         render_light_table(votes_df)
+
+    st.write("### Apagar votos de colaborador específico")
+    with st.form(key="delete_by_email_form"):
+        email_to_delete = st.text_input("Email do colaborador a apagar votos", placeholder="email@cpcecho.pt")
+        submit_delete = st.form_submit_button("Apagar votos deste colaborador", type="secondary")
+        if submit_delete:
+            if not email_to_delete:
+                st.error("Introduz um email válido.")
+            else:
+                norm_email = normalize_voter_id(email_to_delete)
+                conn = get_conn()
+                cur = conn.execute("SELECT COUNT(*) FROM votes WHERE voter_id = ?", (norm_email,))
+                count = cur.fetchone()[0]
+                if count == 0:
+                    st.warning("Este colaborador não tem votos registados.")
+                else:
+                    conn.execute("DELETE FROM votes WHERE voter_id = ?", (norm_email,))
+                    conn.commit()
+                    st.success(f"Foram apagados {count} voto(s) do colaborador {email_to_delete}.")
+                conn.close()
+
     st.write("### Danger zone ☠️")
     confirm_reset = st.checkbox("Confirmo que quero apagar todos os votos")
     if st.button("Apagar todos os votos", type="secondary", use_container_width=True):
