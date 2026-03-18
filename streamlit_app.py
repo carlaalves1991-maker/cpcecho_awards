@@ -217,6 +217,36 @@ def save_vote(voter_id: str, category: str, employee: str) -> str:
         return "duplicate"
     finally:
         conn.close()
+
+
+def upsert_vote(voter_id: str, category: str, employee: str) -> str:
+    """Cria ou atualiza um voto (útil para corrigir escolhas)."""
+    voter_id = normalize_voter_id(voter_id)
+    conn = get_conn()
+    try:
+        cursor = conn.execute(
+            "SELECT id FROM votes WHERE voter_id = ? AND category = ?",
+            (voter_id, category),
+        )
+        row = cursor.fetchone()
+        if row:
+            conn.execute(
+                "UPDATE votes SET employee = ? WHERE voter_id = ? AND category = ?",
+                (employee, voter_id, category),
+            )
+            conn.commit()
+            return "updated"
+        else:
+            conn.execute(
+                "INSERT INTO votes (voter_id, category, employee) VALUES (?, ?, ?)",
+                (voter_id, category, employee),
+            )
+            conn.commit()
+            return "ok"
+    finally:
+        conn.close()
+
+
 def load_votes() -> pd.DataFrame:
     conn = get_conn()
     df = pd.read_sql_query(
