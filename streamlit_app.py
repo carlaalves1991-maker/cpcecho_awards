@@ -9,7 +9,7 @@ import qrcode
 import streamlit as st
 
 # =========================================================
-# SMARTLABS @ QCode CPCECHO - Awards App
+# SMARTLABS @ CPCecho - Awards App
 # =========================================================
 # Instalar:
 #   pip install streamlit pandas qrcode pillow
@@ -29,7 +29,7 @@ import streamlit as st
 # =========================================================
 
 st.set_page_config(
-    page_title="QCode CPCECHO Awards by SmartLabs",
+    page_title="CPCecho Awards by SmartLabs",
     page_icon="🏆",
     layout="wide",
 )
@@ -40,8 +40,8 @@ mode = query_params.get("mode", "full")
 # -----------------------------
 # CONFIGURAÇÃO GERAL
 # -----------------------------
-APP_TITLE = "CPCECHO Awards"
-APP_SUBTITLE = "Powered by SmartLabs @CPCECHO 😎"
+APP_TITLE = "CPCecho Awards"
+APP_SUBTITLE = "Powered by SmartLabs @ CPCecho 😎"
 DB_PATH = Path("cpcecho_awards.db")
 
 # Coloca aqui o link público quando tiveres um.
@@ -364,7 +364,7 @@ def show_header() -> None:
    
     # Cabeçalho com setas de navegação no topo direito
     st.markdown(
-        '''<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;"><div style="display:flex;align-items:center;gap:16px;"><div style="flex-shrink:0;font-size:2.5rem;line-height:1;">🏆</div><div><h1 class="header-title" style="margin:0;">QCode CPCECHO Awards</h1><p class="header-subtitle" style="margin:0;">Powered by SmartLabs @ QCode CPCECHO 😎</p></div></div><div id="header-nav-arrows"></div></div>''',
+        '''<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;"><div style="display:flex;align-items:center;gap:16px;"><div style="flex-shrink:0;font-size:2.5rem;line-height:1;">🏆</div><div><h1 class="header-title" style="margin:0;">CPCecho Awards</h1><p class="header-subtitle" style="margin:0;">Powered by SmartLabs @ CPCecho 😎</p></div></div><div id="header-nav-arrows"></div></div>''',
         unsafe_allow_html=True,
     )
 
@@ -483,7 +483,7 @@ def render_qr_page() -> None:
     import base64
 
     show_header()
-    st.subheader("🔳 QCode")
+    st.subheader("🔳 QR Code")
 
     app_url = st.text_input("URL pública da app", value=APP_URL)
 
@@ -537,7 +537,7 @@ def render_qr_page() -> None:
             font-size: 1rem;
             margin-bottom: 16px;
         }}
-        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QCode" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>QCode CPCECHO Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QCode, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p><p><a href="{app_url.replace('mode=vote', 'mode=live-fullscreen')}" target="_blank">Ver apresentação em full screen (abre em nova aba, pressiona F11)</a></p></div></div>
+        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QR Code" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCecho Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QR code, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p></div></div>
         """,
         unsafe_allow_html=True,
     )
@@ -671,32 +671,31 @@ def render_live_page() -> None:
 
 
     # ── Header com setas + olho na mesma linha ───────────────────────
-    if mode != "live-fullscreen":
-        hcol_title, hcol_prev, hcol_next, hcol_eye = st.columns([10, 0.55, 0.55, 0.55])
-        with hcol_title:
-            st.markdown(
-                '<div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px 0;">'
-                '<span style="font-size:2.5rem;line-height:1;">🏆</span>'
-                '<div>'
-                '<h1 style="color:#FFFFFF;font-size:2.5rem;margin:0;line-height:1.1;font-family:\'Lato\',sans-serif;">QCode CPCECHO Awards</h1>'
-                '<p style="color:#8b9ab0;font-size:1rem;margin:0;font-family:\'Lato\',sans-serif;">Powered by SmartLabs @ QCode CPCECHO 😎</p>'
-                '</div></div>',
-                unsafe_allow_html=True,
-            )
-        with hcol_prev:
-            if st.button("◀", key="live_prev_icon", help="Categoria anterior", disabled=current_index == 0, use_container_width=True):
-                set_presentation_index(current_index - 1)
-                set_reveal_results(False)
-                st.rerun()
-        with hcol_next:
-            if st.button("▶", key="live_next_icon", help="Próxima categoria", disabled=current_index == len(CATEGORIES) - 1, use_container_width=True):
-                set_presentation_index(current_index + 1)
-                set_reveal_results(False)
-                st.rerun()
-        with hcol_eye:
-            if st.button("👁" if not reveal else "⊘", key="live_eye_icon", help="Mostrar/Esconder resultados", use_container_width=True):
-                set_reveal_results(not reveal)
-                st.rerun()
+    hcol_title, hcol_prev, hcol_next, hcol_eye = st.columns([10, 0.55, 0.55, 0.55])
+    with hcol_title:
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px 0;">'
+            '<span style="font-size:2.5rem;line-height:1;">🏆</span>'
+            '<div>'
+            '<h1 style="color:#FFFFFF;font-size:2.5rem;margin:0;line-height:1.1;font-family:\'Lato\',sans-serif;">CPCecho Awards</h1>'
+            '<p style="color:#8b9ab0;font-size:1rem;margin:0;font-family:\'Lato\',sans-serif;">Powered by SmartLabs @ CPCecho 😎</p>'
+            '</div></div>',
+            unsafe_allow_html=True,
+        )
+    with hcol_prev:
+        if st.button("◀", key="live_prev_icon", help="Categoria anterior", disabled=current_index == 0, use_container_width=True):
+            set_presentation_index(current_index - 1)
+            set_reveal_results(False)
+            st.rerun()
+    with hcol_next:
+        if st.button("▶", key="live_next_icon", help="Próxima categoria", disabled=current_index == len(CATEGORIES) - 1, use_container_width=True):
+            set_presentation_index(current_index + 1)
+            set_reveal_results(False)
+            st.rerun()
+    with hcol_eye:
+        if st.button("👁" if not reveal else "⊘", key="live_eye_icon", help="Mostrar/Esconder resultados", use_container_width=True):
+            set_reveal_results(not reveal)
+            st.rerun()
 
     # ── Indicador de progresso ────────────────────────────────────────
     st.markdown(
@@ -1060,24 +1059,20 @@ if mode == "vote":
 else:
     page = st.sidebar.radio(
         "Navigation",
-        ["Vote", "QCode", "Live Presentation", "Final Summary", "Admin"],
+        ["Vote", "QR Code", "Live Presentation", "Final Summary", "Admin"],
         index=0,
     )
 
 st.sidebar.markdown("---")
-st.sidebar.write("**CPCECHO Awards**")
-st.sidebar.caption("Built by SmartLabs @CPCECHO")
+st.sidebar.write("**CPCecho Awards**")
+st.sidebar.caption("Built by SmartLabs @ CPCecho")
 st.sidebar.caption(f"Categorias: {len(CATEGORIES)}")
 st.sidebar.caption(f"Colaboradores: {len(EMPLOYEES)}")
 
 
-if mode == "live-fullscreen":
-    render_live_page()
-    st.stop()
-
 if page == "Vote":
     render_vote_page()
-elif page == "QCode":
+elif page == "QR Code":
     render_qr_page()
 elif page == "Live Presentation":
     render_live_page()
