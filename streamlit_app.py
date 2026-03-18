@@ -537,7 +537,7 @@ def render_qr_page() -> None:
             font-size: 1rem;
             margin-bottom: 16px;
         }}
-        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QCode" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCECHO Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QCode, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p></div></div>
+        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QCode" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCECHO Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QCode, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p><p><a href="{app_url.replace('mode=vote', 'mode=present')}" target="_blank" style="color:#6BAE8A;">Ver apresentação standalone (sem menu)</a></p></div></div>
         """,
         unsafe_allow_html=True,
     )
@@ -575,7 +575,7 @@ def build_results_for_category(votes_df: pd.DataFrame, category: str) -> pd.Data
 # UI - APRESENTAÇÃO AO VIVO
 # =========================================================
 
-def render_live_page() -> None:
+def render_live_page(standalone: bool = False) -> None:
     current_index = get_presentation_index()
     current_category = CATEGORIES[current_index]
     reveal = get_reveal_results()
@@ -634,6 +634,19 @@ def render_live_page() -> None:
         unsafe_allow_html=True,
     )
 
+    if standalone:
+        # Remove sidebar + menu in standalone mode
+        st.markdown(
+            """
+            <style>
+            [data-testid='stSidebar'] {display: none !important;}
+            [data-testid='stToolbar'] {display: none !important;}
+            [data-testid='stHeader'] {display: none !important;}
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
     # ── CSS específico das setas no header e olho na categoria ───────
     st.markdown(
         """
@@ -671,31 +684,32 @@ def render_live_page() -> None:
 
 
     # ── Header com setas + olho na mesma linha ───────────────────────
-    hcol_title, hcol_prev, hcol_next, hcol_eye = st.columns([10, 0.55, 0.55, 0.55])
-    with hcol_title:
-        st.markdown(
-            '<div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px 0;">'
-            '<span style="font-size:2.5rem;line-height:1;">🏆</span>'
-            '<div>'
-            '<h1 style="color:#FFFFFF;font-size:2.5rem;margin:0;line-height:1.1;font-family:\'Lato\',sans-serif;">CPCECHO Awards</h1>'
-            '<p style="color:#8b9ab0;font-size:1rem;margin:0;font-family:\'Lato\',sans-serif;">Powered by SmartLabs @ CPCECHO 😎</p>'
-            '</div></div>',
-            unsafe_allow_html=True,
-        )
-    with hcol_prev:
-        if st.button("◀", key="live_prev_icon", help="Categoria anterior", disabled=current_index == 0, use_container_width=True):
-            set_presentation_index(current_index - 1)
-            set_reveal_results(False)
-            st.rerun()
-    with hcol_next:
-        if st.button("▶", key="live_next_icon", help="Próxima categoria", disabled=current_index == len(CATEGORIES) - 1, use_container_width=True):
-            set_presentation_index(current_index + 1)
-            set_reveal_results(False)
-            st.rerun()
-    with hcol_eye:
-        if st.button("👁" if not reveal else "⊘", key="live_eye_icon", help="Mostrar/Esconder resultados", use_container_width=True):
-            set_reveal_results(not reveal)
-            st.rerun()
+    if not standalone:
+        hcol_title, hcol_prev, hcol_next, hcol_eye = st.columns([10, 0.55, 0.55, 0.55])
+        with hcol_title:
+            st.markdown(
+                '<div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px 0;">'
+                '<span style="font-size:2.5rem;line-height:1;">🏆</span>'
+                '<div>'
+                '<h1 style="color:#FFFFFF;font-size:2.5rem;margin:0;line-height:1.1;font-family:\'Lato\',sans-serif;">CPCECHO Awards</h1>'
+                '<p style="color:#8b9ab0;font-size:1rem;margin:0;font-family:\'Lato\',sans-serif;">Powered by SmartLabs @ CPCECHO 😎</p>'
+                '</div></div>',
+                unsafe_allow_html=True,
+            )
+        with hcol_prev:
+            if st.button("◀", key="live_prev_icon", help="Categoria anterior", disabled=current_index == 0, use_container_width=True):
+                set_presentation_index(current_index - 1)
+                set_reveal_results(False)
+                st.rerun()
+        with hcol_next:
+            if st.button("▶", key="live_next_icon", help="Próxima categoria", disabled=current_index == len(CATEGORIES) - 1, use_container_width=True):
+                set_presentation_index(current_index + 1)
+                set_reveal_results(False)
+                st.rerun()
+        with hcol_eye:
+            if st.button("👁" if not reveal else "⊘", key="live_eye_icon", help="Mostrar/Esconder resultados", use_container_width=True):
+                set_reveal_results(not reveal)
+                st.rerun()
 
     # ── Indicador de progresso ────────────────────────────────────────
     st.markdown(
@@ -1056,6 +1070,9 @@ st.markdown(
 
 if mode == "vote":
     page = "Vote"
+elif mode == "present":
+    render_live_page(standalone=True)
+    st.stop()
 else:
     page = st.sidebar.radio(
         "Navigation",
