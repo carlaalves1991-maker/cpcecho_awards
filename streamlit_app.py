@@ -338,7 +338,14 @@ def render_vote_page() -> None:
         else:
             st.error("Introduz um identificador válido.")
         return
+
     voter_key = normalize_voter_id(voter_id)
+
+    # Reset state quando o identificador muda (novo utilizador).
+    if st.session_state.get("last_voter_key") != voter_key:
+        st.session_state["last_voter_key"] = voter_key
+        st.session_state["vote_done"] = False
+
     votes_df = load_votes()
     # Descobre em que categorias esta pessoa já votou.
     already_voted = set()
@@ -346,17 +353,28 @@ def render_vote_page() -> None:
         already_voted = set(
             votes_df[votes_df["voter_id"] == voter_key]["category"].tolist()
         )
+
     remaining = [category for category in CATEGORIES if category not in already_voted]
     completed = [category for category in CATEGORIES if category in already_voted]
-    c1, c2 = st.columns(2)
-    c1.metric("Respondidas", len(completed))
-    c2.metric("Por responder", len(remaining))
-    # Quando termina tudo, mostramos resumo pessoal.
-    if not remaining:
-        st.success("Já respondeste a tudo. Missão cumprida. 🏁")
+
+    # Indicador simples de progresso (melhor para mobile).
+    st.markdown(
+        f"**Progresso:** {len(completed)}/{len(CATEGORIES)} categorias respondidas  •  "
+        f"**Faltam:** {len(remaining)}"
+    )
+    st.progress(len(completed) / len(CATEGORIES))
+
+    # Se o utilizador escolheu terminar, mostramos o resumo e permitimos voltar.
+    vote_done = st.session_state.get("vote_done", False)
+    if vote_done or not remaining:
+        st.success(
+            "Já respondeste a tudo (ou terminaste). Podes continuar a votar quando quiseres."
+            if vote_done
+            else "Já respondeste a tudo. Missão cumprida. 🏁"
+        )
+        st.write("### O teu resumo")
         my_votes = votes_df[votes_df["voter_id"] == voter_key][["category", "employee"]].copy()
         my_votes.columns = ["Categoria", "O teu voto"]
-        st.write("### O teu resumo final")
         cols = my_votes.columns.tolist()
         header_cells = "".join(
             f'<th style="background:#1a3348;color:#FFFFFF;padding:10px 16px;text-align:left;font-weight:700;border-bottom:2px solid rgba(255,255,255,0.2);">{c}</th>'
@@ -377,32 +395,80 @@ def render_vote_page() -> None:
             f'</table>',
             unsafe_allow_html=True,
         )
+
+        if st.button("Continuar a votar"):
+            st.session_state["vote_done"] = False
+            st.rerun()
         return
-    # Mostra apenas a próxima categoria que falta.
-    current_category = remaining[0]
-    nominees = get_nominees(current_category)
-    st.progress(
-        len(completed) / len(CATEGORIES),
-        text=f"Pergunta {len(completed) + 1} de {len(CATEGORIES)}",
+
+    # Mostra a categoria selecionada (permite saltar e voltar a votar).
+    category_labels = []
+    label_to_category = {}
+    for cat in CATEGORIES:
+        label = f"{cat} ✅" if cat in already_voted else cat
+        category_labels.append(label)
+        label_to_category[label] = cat
+
+    selected_label = st.selectbox(
+        "Categoria",
+        category_labels,
+        index=category_labels.index(st.session_state.get("vote_category", category_labels[0]))
+        if st.session_state.get("vote_category") in category_labels
+        else 0,
+        key="vote_category",
     )
-    st.markdown(f"## {current_category}")
+    current_category = label_to_category[selected_label]
+
+    # Se já votou nesta categoria, mostra a escolha atual.
+    current_vote = None
+    if current_category in already_voted:
+        current_vote = (
+            votes_df[
+                (votes_df["voter_id"] == voter_key)
+                & (votes_df["category"] == current_category)
+            ]["employee"]
+            .iloc[0]
+        )
+        st.info(f"Já votaste nesta categoria: **{current_vote}**. Podes atualizar abaixo.")
+
+    nominees = get_nominees(current_category)
     selected_employee = st.selectbox(
         "Escolhe 1 colega",
         nominees,
-        index=None,
-        placeholder="Seleciona um nome",
+        index=nominees.index(current_vote) if current_vote in nominees else 0,
         key=f"vote_{current_category}",
     )
-    if st.button("Submeter e continuar", use_container_width=True, type="primary"):
-        if not selected_employee:
-            st.warning("Escolhe um colega antes de submeter.")
-            st.stop()
-        result = save_vote(voter_id, current_category, selected_employee)
-        if result == "ok":
-            st.success("Voto registado com sucesso ✅")
+
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        if st.button("Guardar voto", use_container_width=True, type="primary"):
+            if not selected_employee:
+                st.warning("Escolhe um colega antes de guardar.")
+                st.stop()
+            result = upsert_vote(voter_id, current_category, selected_employee)
+            if result == "updated":
+                st.success("Voto atualizado com sucesso ✅")
+            else:
+                st.success("Voto registado com sucesso ✅")
             st.rerun()
-        else:
-            st.error("Este identificador já votou nesta categoria.")
+    with col2:
+        if st.button("Salta categoria", use_container_width=True):
+            current_idx = category_labels.index(selected_label)
+            next_idx = None
+            for i in range(1, len(category_labels)):
+                candidate_idx = (current_idx + i) % len(category_labels)
+                candidate_cat = label_to_category[category_labels[candidate_idx]]
+                if candidate_cat not in already_voted:
+                    next_idx = candidate_idx
+                    break
+            if next_idx is None:
+                next_idx = (current_idx + 1) % len(category_labels)
+            st.session_state["vote_category"] = category_labels[next_idx]
+            st.rerun()
+    with col3:
+        if st.button("Terminar", use_container_width=True, type="secondary"):
+            st.session_state["vote_done"] = True
+            st.rerun()
 # =========================================================
 # UI - QR CODE
 # =========================================================
