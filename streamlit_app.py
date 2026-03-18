@@ -9,7 +9,7 @@ import qrcode
 import streamlit as st
 
 # =========================================================
-# SMARTLABS @ CPCecho - Awards App
+# SMARTLABS @ CPCECHO - Awards App
 # =========================================================
 # Instalar:
 #   pip install streamlit pandas qrcode pillow
@@ -29,7 +29,7 @@ import streamlit as st
 # =========================================================
 
 st.set_page_config(
-    page_title="CPCecho Awards by SmartLabs",
+    page_title="CPCECHO Awards by SmartLabs",
     page_icon="🏆",
     layout="wide",
 )
@@ -40,8 +40,8 @@ mode = query_params.get("mode", "full")
 # -----------------------------
 # CONFIGURAÇÃO GERAL
 # -----------------------------
-APP_TITLE = "CPCecho Awards"
-APP_SUBTITLE = "Powered by SmartLabs @ CPCecho 😎"
+APP_TITLE = "CPCECHO Awards"
+APP_SUBTITLE = "Powered by SmartLabs @ CPCECHO 😎"
 DB_PATH = Path("cpcecho_awards.db")
 
 # Coloca aqui o link público quando tiveres um.
@@ -364,7 +364,7 @@ def show_header() -> None:
    
     # Cabeçalho com setas de navegação no topo direito
     st.markdown(
-        '''<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;"><div style="display:flex;align-items:center;gap:16px;"><div style="flex-shrink:0;font-size:2.5rem;line-height:1;">🏆</div><div><h1 class="header-title" style="margin:0;">CPCecho Awards</h1><p class="header-subtitle" style="margin:0;">Powered by SmartLabs @ CPCecho 😎</p></div></div><div id="header-nav-arrows"></div></div>''',
+        '''<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;"><div style="display:flex;align-items:center;gap:16px;"><div style="flex-shrink:0;font-size:2.5rem;line-height:1;">🏆</div><div><h1 class="header-title" style="margin:0;">CPCECHO Awards</h1><p class="header-subtitle" style="margin:0;">Powered by SmartLabs @ CPCECHO 😎</p></div></div><div id="header-nav-arrows"></div></div>''',
         unsafe_allow_html=True,
     )
 
@@ -537,7 +537,7 @@ def render_qr_page() -> None:
             font-size: 1rem;
             margin-bottom: 16px;
         }}
-        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QR Code" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCecho Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QR code, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p></div></div>
+        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QR Code" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCECHO Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QR code, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p></div></div>
         """,
         unsafe_allow_html=True,
     )
@@ -677,8 +677,8 @@ def render_live_page() -> None:
             '<div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px 0;">'
             '<span style="font-size:2.5rem;line-height:1;">🏆</span>'
             '<div>'
-            '<h1 style="color:#FFFFFF;font-size:2.5rem;margin:0;line-height:1.1;font-family:\'Lato\',sans-serif;">CPCecho Awards</h1>'
-            '<p style="color:#8b9ab0;font-size:1rem;margin:0;font-family:\'Lato\',sans-serif;">Powered by SmartLabs @ CPCecho 😎</p>'
+            '<h1 style="color:#FFFFFF;font-size:2.5rem;margin:0;line-height:1.1;font-family:\'Lato\',sans-serif;">CPCECHO Awards</h1>'
+            '<p style="color:#8b9ab0;font-size:1rem;margin:0;font-family:\'Lato\',sans-serif;">Powered by SmartLabs @ CPCECHO 😎</p>'
             '</div></div>',
             unsafe_allow_html=True,
         )
@@ -1064,8 +1064,8 @@ else:
     )
 
 st.sidebar.markdown("---")
-st.sidebar.write("**CPCecho Awards**")
-st.sidebar.caption("Built by SmartLabs @ CPCecho")
+st.sidebar.write("**CPCECHO Awards**")
+st.sidebar.caption("Built by SmartLabs @ CPCECHO")
 st.sidebar.caption(f"Categorias: {len(CATEGORIES)}")
 st.sidebar.caption(f"Colaboradores: {len(EMPLOYEES)}")
 
