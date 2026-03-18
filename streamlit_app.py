@@ -1210,6 +1210,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+try:
+    mode
+except NameError:
+    # Fallback para quando o arquivo for executado fora de um contexto que define `mode`.
+    mode = "vote"
+
 if mode == "vote":
     page = "Vote"
 elif mode == "present":
