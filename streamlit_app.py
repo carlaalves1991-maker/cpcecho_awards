@@ -1,3 +1,4 @@
+import base64
 import re
 import sqlite3
 from io import BytesIO
@@ -41,7 +42,7 @@ mode = query_params.get("mode", "full")
 # CONFIGURAÇÃO GERAL
 # -----------------------------
 APP_TITLE = "CPCecho Awards"
-APP_SUBTITLE = "Powered by SmartLabs @ CPCecho 😎"
+APP_SUBTITLE = "SmartLabs presents: Vote com estilo! 🧠🎉"
 DB_PATH = Path("cpcecho_awards.db")
 
 # Coloca aqui o link público quando tiveres um.
@@ -56,6 +57,9 @@ REQUIRE_COMPANY_EMAIL = False
 
 # Se quiseres mostrar percentagens nas tabelas finais.
 SHOW_PERCENTAGES = True
+
+# Valor especial que marca categorias em que o utilizador optou por não votar.
+SKIP_VOTE = "__SKIPPED__"
 
 # -----------------------------
 # CATEGORIAS
@@ -246,6 +250,21 @@ def save_vote(voter_id: str, category: str, employee: str) -> str:
         conn.commit()
         return "ok"
     except sqlite3.IntegrityError:
+        # Se o único voto existente é um "skip", permite atualizar para um voto real.
+        if employee != SKIP_VOTE:
+            cursor = conn.execute(
+                "SELECT employee FROM votes WHERE voter_id = ? AND category = ?",
+                (voter_id, category),
+            )
+            row = cursor.fetchone()
+            if row and row[0] == SKIP_VOTE:
+                conn.execute(
+                    "UPDATE votes SET employee = ?, created_at = CURRENT_TIMESTAMP WHERE voter_id = ? AND category = ?",
+                    (employee, voter_id, category),
+                )
+                conn.commit()
+                return "ok"
+
         return "duplicate"
     finally:
         conn.close()
@@ -337,34 +356,44 @@ def show_header() -> None:
         """
         <style>
         .header-container {
-            background-color: rgba(255, 255, 255, 0.9);
-            box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
-            padding: 20px;
-            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0px 0px 18px 0px rgba(0,0,0,0.25);
+            padding: 18px 18px 18px 22px;
+            border-radius: 14px;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
         }
         .header-title {
-            color: #174E6D;
+            color: #FFFFFF;
             font-family: 'Lato', sans-serif;
             font-size: 2.5rem;
             margin: 0;
         }
         .header-subtitle {
-            color: #216390;
+            color: #00d1ff;
             font-family: 'Lato', sans-serif;
             font-size: 1rem;
             margin: 0;
+            letter-spacing: 0.04em;
+        }
+        .header-subtitle span {
+            color: #ffdd57;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
-   
+
+    logo_path = Path(__file__).parent / "smartlabs_logo.svg"
+    logo_html = ""
+    if logo_path.exists():
+        logo_b64 = base64.b64encode(logo_path.read_bytes()).decode()
+        logo_html = f'<img src="data:image/svg+xml;base64,{logo_b64}" style="width:56px;height:56px;border-radius:14px;" />'
+
     # Cabeçalho com setas de navegação no topo direito
     st.markdown(
-        '''<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;"><div style="display:flex;align-items:center;gap:16px;"><div style="flex-shrink:0;font-size:2.5rem;line-height:1;">🏆</div><div><h1 class="header-title" style="margin:0;">CPCecho Awards</h1><p class="header-subtitle" style="margin:0;">Powered by SmartLabs @ CPCecho 😎</p></div></div><div id="header-nav-arrows"></div></div>''',
+        f'''<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;"><div style="display:flex;align-items:center;gap:16px;"><div style="flex-shrink:0;">{logo_html or '🏆'}</div><div><h1 class="header-title" style="margin:0;">CPCecho Awards</h1><p class="header-subtitle" style="margin:0;">{APP_SUBTITLE}</p></div></div><div id="header-nav-arrows"></div></div>''',
         unsafe_allow_html=True,
     )
 
@@ -378,24 +407,24 @@ def render_vote_page() -> None:
     st.write("Uma pergunta de cada vez. Sem spoilers. Sem batota.")
 
     voter_id = st.text_input(
-        "O teu identificador",
-        placeholder="Ex: email",
+        "O teu email",
+        placeholder="Ex: nome@empresa.com",
         help=(
             f"Se REQUIRE_COMPANY_EMAIL = True, tens de usar @{EMAIL_DOMAIN}."
             if REQUIRE_COMPANY_EMAIL
-            else "Podes usar email ou código de colaborador."
+            else "Podes usar o teu email ou um identificador à tua escolha."
         ),
     )
 
     if not voter_id:
-        st.info("Introduz o teu identificador para começar.")
+        st.info("Introduz o teu email ou identificador para começar.")
         return
 
     if not is_allowed_voter_id(voter_id):
         if REQUIRE_COMPANY_EMAIL:
             st.error(f"Usa o teu email da empresa (@{EMAIL_DOMAIN}).")
         else:
-            st.error("Introduz um identificador válido.")
+            st.error("Introduz um email ou identificador válido.")
         return
 
     voter_key = normalize_voter_id(voter_id)
@@ -411,14 +440,16 @@ def render_vote_page() -> None:
     remaining = [category for category in CATEGORIES if category not in already_voted]
     completed = [category for category in CATEGORIES if category in already_voted]
 
-    c1, c2 = st.columns(2)
-    c1.metric("Respondidas", len(completed))
-    c2.metric("Por responder", len(remaining))
+    with st.expander("Progresso", expanded=False):
+        c1, c2 = st.columns(2)
+        c1.metric("Respondidas", len(completed))
+        c2.metric("Por responder", len(remaining))
 
     # Quando termina tudo, mostramos resumo pessoal.
     if not remaining:
         st.success("Já respondeste a tudo. Missão cumprida. 🏁")
         my_votes = votes_df[votes_df["voter_id"] == voter_key][["category", "employee"]].copy()
+        my_votes["employee"] = my_votes["employee"].replace({SKIP_VOTE: "(não votado)"})
         my_votes.columns = ["Categoria", "O teu voto"]
         st.write("### O teu resumo final")
         cols = my_votes.columns.tolist()
@@ -474,6 +505,11 @@ def render_vote_page() -> None:
             st.rerun()
         else:
             st.error("Este identificador já votou nesta categoria.")
+
+    if st.button("Pular esta categoria", type="secondary", use_container_width=True):
+        save_vote(voter_id, current_category, SKIP_VOTE)
+        st.info("Categoria ignorada. Continuação rápida!")
+        st.rerun()
 
 
 # =========================================================
@@ -547,8 +583,10 @@ def render_qr_page() -> None:
 # UI - CÁLCULO DE RESULTADOS
 # =========================================================
 def build_results_for_category(votes_df: pd.DataFrame, category: str) -> pd.DataFrame:
-    # Filtra só os votos da categoria atual.
-    category_df = votes_df[votes_df["category"] == category]
+    # Filtra só os votos da categoria atual (ignora skip/abstenções).
+    category_df = votes_df[
+        (votes_df["category"] == category) & (votes_df["employee"] != SKIP_VOTE)
+    ]
 
     if category_df.empty:
         return pd.DataFrame(columns=["employee", "votes", "percentage"])
@@ -581,7 +619,7 @@ def render_live_page() -> None:
     reveal = get_reveal_results()
     votes_df = load_votes()
 
-    # ── Fundo CPC azul ─────────────────────────────────────
+    # ── Fundo CPC azul (mais leve) ─────────────────────────────────────
     st.markdown(
         """
         <style>
@@ -589,40 +627,40 @@ def render_live_page() -> None:
         [data-testid="stAppViewContainer"] > div:first-child,
         [data-testid="stMain"],
         .main {
-            background-color: #0f2d45 !important;
+            background-color: #0b3a5a !important;
         }
         [data-testid="stHeader"] {
-            background-color: #0f2d45 !important;
+            background-color: #0b3a5a !important;
         }
         [data-testid="stToolbar"] {
-            background-color: #0f2d45 !important;
+            background-color: #0b3a5a !important;
         }
         /* Header card branco do show_header */
         .header-container {
-            background-color: rgba(255,255,255,0.05) !important;
+            background-color: rgba(255,255,255,0.12) !important;
             box-shadow: none !important;
         }
         .header-title {
             color: #FFFFFF !important;
         }
         .header-subtitle {
-            color: #8b9ab0 !important;
+            color: #00d1ff !important;
         }
         /* Sidebar */
         [data-testid="stSidebar"] {
-            background-color: #0a1e2e !important;
+            background-color: #0b2f4a !important;
         }
         [data-testid="stSidebar"] * {
-            color: #8b9ab0 !important;
+            color: #c3e5ff !important;
         }
         /* Botões streamlit sobre fundo escuro */
         .stButton > button {
-            background-color: rgba(255,255,255,0.12) !important;
+            background-color: rgba(255,255,255,0.14) !important;
             color: #FFFFFF !important;
-            border: 1px solid rgba(255,255,255,0.2) !important;
+            border: 1px solid rgba(255,255,255,0.25) !important;
         }
         .stButton > button:hover {
-            background-color: rgba(255,255,255,0.22) !important;
+            background-color: rgba(255,255,255,0.26) !important;
         }
         .stButton > button[kind="primary"] {
             background-color: #6BAE8A !important;
@@ -706,14 +744,20 @@ def render_live_page() -> None:
     )
 
     total_votes = len(votes_df[votes_df["category"] == current_category])
-    votes_label = f'{total_votes} voto{"s" if total_votes != 1 else ""}'
+    votes_label = (
+        f'{total_votes} voto{"s" if total_votes != 1 else ""}'
+        if reveal
+        else ""
+    )
 
     if not reveal:
         card_content = (
             '<div style="text-align:center;padding:32px 0;">'
             '<div style="font-size:3rem;margin-bottom:12px;">🎭</div>'
             '<div style="color:#FFFFFF;font-size:1.3rem;font-weight:700;margin-bottom:8px;">Votação a decorrer</div>'
+            '<div style="color:rgba(255,255,255,0.7);font-size:0.9rem;">A página actualiza automaticamente a cada 8 segundos.</div>'
             '</div>'
+            '<script>setTimeout(()=>window.location.reload(), 8000);</script>'
         )
     else:
         results = build_results_for_category(votes_df, current_category)
@@ -755,11 +799,17 @@ def render_live_page() -> None:
         card_content = leader_html + no_votes_html + bars_html
 
     # ── Card: título + votos + conteúdo ──────────────────────────────
+    votes_label_html = (
+        f'<span style="color:#6BAE8A;font-size:1.4rem;font-weight:700;">{votes_label}</span>'
+        if votes_label
+        else ""
+    )
+
     st.markdown(
         f'<div style="background:#071828;border-radius:16px;padding:28px 32px;">'
         f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
         f'<h2 style="color:#FFFFFF;font-size:clamp(1.4rem,2.5vw,2rem);font-weight:800;margin:0;">{current_category}</h2>'
-        f'<span style="color:#6BAE8A;font-size:1.4rem;font-weight:700;">{votes_label}</span>'
+        f'{votes_label_html}'
         f'</div>'
         f'<hr style="border-color:rgba(255,255,255,0.15);margin:12px 0 20px 0;">'
         f'{card_content}'
@@ -782,53 +832,50 @@ def render_final_summary_page() -> None:
         st.info("Ainda não há votos submetidos.")
         return
 
+    valid_votes = votes_df[votes_df["employee"] != SKIP_VOTE]
+    total_votes = len(valid_votes)
+    unique_voters = valid_votes["voter_id"].nunique()
+
     s1, s2 = st.columns(2)
-    s1.metric("Total de votos", len(votes_df))
-    s2.metric("Votantes únicos", votes_df["voter_id"].nunique())
+    s1.metric("Total de votos", total_votes)
+    s2.metric("Votantes únicos", unique_voters)
 
-    for idx, category in enumerate(CATEGORIES, start=1):
-        st.markdown(f"## {idx}. {category}")
+    st.markdown("---")
+    st.write("🏅 Vencedores por categoria")
 
+    cards = []
+    for category in CATEGORIES:
         results = build_results_for_category(votes_df, category)
-
         if results.empty:
-            st.caption("Ainda sem votos.")
-            st.divider()
-            continue
+            winner = None
+            votes = 0
+        else:
+            winner = results.iloc[0]["employee"]
+            votes = int(results.iloc[0]["votes"])
 
-        winner = results.iloc[0]["employee"]
-        winner_votes = int(results.iloc[0]["votes"])
-
-        st.success(f"Vencedor atual: {winner} com {winner_votes} votos")
-
-        display_df = results.rename(
-            columns={"employee": "Colaborador", "votes": "Votos", "percentage": "%"}
-        )
-
-        if not SHOW_PERCENTAGES:
-            display_df = display_df[["Colaborador", "Votos"]]
-
-        cols = votes_df.columns.tolist()
-        header_cells = "".join(
-            f'<th style="background:#1a3348;color:#FFFFFF;padding:10px 16px;text-align:left;font-weight:700;border-bottom:2px solid rgba(255,255,255,0.2);">{c}</th>'
-            for c in cols
-        )
-        rows_html = ""
-        for i, row in votes_df.iterrows():
-            bg = "#203c52" if i % 2 == 0 else "#1a3045"
-            cells = "".join(
-                f'<td style="padding:9px 16px;color:#FFFFFF;border-bottom:1px solid rgba(255,255,255,0.08);">{row[c]}</td>'
-                for c in cols
+        if winner:
+            winner_html = (
+                f'<div style="font-size:1.3rem;font-weight:700;color:#0f3a52;">{winner}</div>'
+                f'<div style="color:#0f3a52;opacity:0.8;font-size:0.95rem;">{votes} voto{"s" if votes != 1 else ""}</div>'
             )
-            rows_html += f'<tr style="background:{bg};">{cells}</tr>'
-        st.markdown(
-            f'<table style="width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;">'
-            f'<thead><tr>{header_cells}</tr></thead>'
-            f'<tbody>{rows_html}</tbody>'
-            f'</table>',
-            unsafe_allow_html=True,
+        else:
+            winner_html = (
+                '<div style="color:#0f3a52;opacity:0.7;font-size:0.95rem;">Ainda sem votos</div>'
+            )
+
+        cards.append(
+            f'<div style="background:#f4f8ff;border-radius:16px;padding:18px;box-shadow:0 10px 18px rgba(0,0,0,0.08);min-height:160px;">'
+            f'<div style="font-size:1rem;font-weight:800;color:#0f3a52;margin-bottom:10px;">{category}</div>'
+            f'{winner_html}'
+            f'</div>'
         )
-        st.divider()
+
+    for i in range(0, len(cards), 3):
+        row_cards = cards[i : i + 3]
+        cols = st.columns(len(row_cards))
+        for col, card in zip(cols, row_cards):
+            with col:
+                st.markdown(card, unsafe_allow_html=True)
 
 
 # =========================================================
@@ -948,33 +995,33 @@ st.markdown(
         [data-testid="stAppViewContainer"] > div:first-child,
         [data-testid="stMain"],
         .main {
-            background-color: #0f2d45 !important;
+            background-color: #0b3a5a !important;
         }
         [data-testid="stHeader"] {
-            background-color: #0f2d45 !important;
+            background-color: #0b3a5a !important;
         }
         [data-testid="stToolbar"] {
-            background-color: #0f2d45 !important;
+            background-color: #0b3a5a !important;
         }
 
         /* Header card */
         .header-container {
-            background-color: rgba(255,255,255,0.05) !important;
+            background-color: rgba(255,255,255,0.14) !important;
             box-shadow: none !important;
         }
         .header-title {
             color: #FFFFFF !important;
         }
         .header-subtitle {
-            color: #8b9ab0 !important;
+            color: #00d1ff !important;
         }
 
         /* Sidebar */
         [data-testid="stSidebar"] {
-            background-color: #0a1e2e !important;
+            background-color: #0b2f4a !important;
         }
         [data-testid="stSidebar"] * {
-            color: #8b9ab0 !important;
+            color: #c3e5ff !important;
         }
 
         /* Texto geral sobre fundo escuro */
