@@ -2,3 +2,4 @@ streamlit
 pandas
 qrcode[pil]
 pillow
+streamlit-autorefresh
