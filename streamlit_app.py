@@ -1,13 +1,12 @@
+
 import re
 import sqlite3
 from io import BytesIO
 from pathlib import Path
 from typing import List
-
 import pandas as pd
 import qrcode
 import streamlit as st
-
 # =========================================================
 # SMARTLABS @ CPCECHO - Awards App
 # =========================================================
@@ -27,7 +26,6 @@ import streamlit as st
 # - Página final com resumo completo
 # - Página admin para controlar a apresentação
 # =========================================================
-
 st.set_page_config(
     page_title="CPCECHO Awards by SmartLabs",
     page_icon="🏆",
@@ -36,27 +34,21 @@ st.set_page_config(
 query_params = st.query_params
 mode = query_params.get("mode", "full")
 
-
 # -----------------------------
 # CONFIGURAÇÃO GERAL
 # -----------------------------
 APP_TITLE = "CPCECHO Awards"
 APP_SUBTITLE = "Powered by SmartLabs @ CPCECHO 😎"
 DB_PATH = Path("cpcecho_awards.db")
-
 # Coloca aqui o link público quando tiveres um.
 APP_URL = "https://cpcecho-awards.streamlit.app/?mode=vote"
-
 # Código de admin para controlar apresentação e exportações.
 ADMIN_CODE = "cpcecho2026"
-
 # Se quiseres obrigar email da empresa, muda para True.
 EMAIL_DOMAIN = "cpcecho.com"
 REQUIRE_COMPANY_EMAIL = False
-
 # Se quiseres mostrar percentagens nas tabelas finais.
 SHOW_PERCENTAGES = True
-
 # -----------------------------
 # CATEGORIAS
 # -----------------------------
@@ -72,7 +64,6 @@ CATEGORIES: List[str] = [
     "Mais Nhonhinha da Equipa 🧸",
     "Resolve Tudo Antes de Ser Problema 🛠️",
 ]
-
 # -----------------------------
 # COLABORADORES
 # -----------------------------
@@ -123,13 +114,11 @@ EMPLOYEES: List[str] = [
     "Silvia Martins",
     "Susana Costa",
 ]
-
 # Se quiseres limitar nomeados por categoria, podes usar isto.
 # Se ficar vazio, toda a gente pode ser votada em todas as categorias.
 NOMINEES_BY_CATEGORY = {
     # "Compromisso": ["Alfredo Fernandes", "Carla Alves", "João Ferreira"],
 }
-
 # =========================================================
 # BASE DE DADOS
 # =========================================================
@@ -139,11 +128,9 @@ def get_conn() -> sqlite3.Connection:
     conn.execute("PRAGMA journal_mode=WAL;")
     return conn
 
-
 def init_db() -> None:
     """Cria as tabelas necessárias e estados iniciais da app."""
     conn = get_conn()
-
     # Tabela principal dos votos.
     # UNIQUE(voter_id, category) garante 1 voto por pessoa por categoria.
     conn.execute(
@@ -158,7 +145,6 @@ def init_db() -> None:
         )
         """
     )
-
     # Tabela simples de estado global da app.
     # Aqui guardamos:
     # - categoria atualmente mostrada na apresentação
@@ -172,7 +158,6 @@ def init_db() -> None:
         """
     )
     conn.commit()
-
     # Estado inicial da categoria apresentada.
     cursor = conn.execute(
         "SELECT state_value FROM app_state WHERE state_key = ?",
@@ -183,7 +168,6 @@ def init_db() -> None:
             "INSERT INTO app_state (state_key, state_value) VALUES (?, ?)",
             ("presentation_index", "0"),
         )
-
     # Estado inicial: resultados escondidos.
     cursor = conn.execute(
         "SELECT state_value FROM app_state WHERE state_key = ?",
@@ -194,41 +178,32 @@ def init_db() -> None:
             "INSERT INTO app_state (state_key, state_value) VALUES (?, ?)",
             ("reveal_results", "0"),
         )
-
     conn.commit()
     conn.close()
-
 
 def normalize_voter_id(voter_id: str) -> str:
     # Normaliza o identificador para evitar duplicados com maiúsculas/espaços.
     return voter_id.strip().lower()
 
-
 def is_valid_email(value: str) -> bool:
     pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
     return re.match(pattern, value.strip()) is not None
 
-
 def is_allowed_voter_id(voter_id: str) -> bool:
     voter_id = voter_id.strip().lower()
-
     if not voter_id:
         return False
-
     # Se ativares a regra, só aceita email do domínio da empresa.
     if REQUIRE_COMPANY_EMAIL:
         return is_valid_email(voter_id) and voter_id.endswith("@" + EMAIL_DOMAIN)
-
     # Caso contrário, aceita qualquer identificador não vazio.
     return True
-
 
 def get_nominees(category: str) -> List[str]:
     # Se existir lista própria para a categoria, usa-a.
     # Caso contrário, usa todos os colaboradores.
     nominees = NOMINEES_BY_CATEGORY.get(category, [])
     return nominees if nominees else EMPLOYEES
-
 
 def save_vote(voter_id: str, category: str, employee: str) -> str:
     """Guarda um voto e devolve:
@@ -237,7 +212,6 @@ def save_vote(voter_id: str, category: str, employee: str) -> str:
     """
     voter_id = normalize_voter_id(voter_id)
     conn = get_conn()
-
     try:
         conn.execute(
             "INSERT INTO votes (voter_id, category, employee) VALUES (?, ?, ?)",
@@ -250,7 +224,6 @@ def save_vote(voter_id: str, category: str, employee: str) -> str:
     finally:
         conn.close()
 
-
 def load_votes() -> pd.DataFrame:
     conn = get_conn()
     df = pd.read_sql_query(
@@ -260,13 +233,11 @@ def load_votes() -> pd.DataFrame:
     conn.close()
     return df
 
-
 def delete_all_votes() -> None:
     conn = get_conn()
     conn.execute("DELETE FROM votes")
     conn.commit()
     conn.close()
-
 
 def get_state(key: str, default: str = "") -> str:
     conn = get_conn()
@@ -277,7 +248,6 @@ def get_state(key: str, default: str = "") -> str:
     row = cursor.fetchone()
     conn.close()
     return row[0] if row else default
-
 
 def set_state(key: str, value: str) -> None:
     conn = get_conn()
@@ -292,42 +262,34 @@ def set_state(key: str, value: str) -> None:
     conn.commit()
     conn.close()
 
-
 def get_presentation_index() -> int:
     try:
         idx = int(get_state("presentation_index", "0"))
     except ValueError:
         idx = 0
-
     return max(0, min(idx, len(CATEGORIES) - 1))
-
 
 def set_presentation_index(index: int) -> None:
     # Garante que nunca saímos fora da lista de categorias.
     index = max(0, min(index, len(CATEGORIES) - 1))
     set_state("presentation_index", str(index))
 
-
 def get_reveal_results() -> bool:
     return get_state("reveal_results", "0") == "1"
 
-
 def set_reveal_results(value: bool) -> None:
     set_state("reveal_results", "1" if value else "0")
-
 
 def generate_qr_image(url: str) -> BytesIO:
     # Gera QR code em memória, sem criar ficheiros temporários.
     qr = qrcode.QRCode(box_size=10, border=2)
     qr.add_data(url)
     qr.make(fit=True)
-
     img = qr.make_image(fill_color="black", back_color="white")
     buffer = BytesIO()
     img.save(buffer, format="PNG")
     buffer.seek(0)
     return buffer
-
 
 # =========================================================
 # UI - CABEÇALHO
@@ -368,7 +330,6 @@ def show_header() -> None:
         unsafe_allow_html=True,
     )
 
-
 # =========================================================
 # UI - PÁGINA DE VOTO
 # =========================================================
@@ -376,7 +337,6 @@ def render_vote_page() -> None:
     show_header()
     st.subheader("📱 Votar")
     st.write("Uma pergunta de cada vez. Sem spoilers. Sem batota.")
-
     voter_id = st.text_input(
         "O teu identificador",
         placeholder="Ex: email",
@@ -386,35 +346,28 @@ def render_vote_page() -> None:
             else "Podes usar email ou código de colaborador."
         ),
     )
-
     if not voter_id:
         st.info("Introduz o teu identificador para começar.")
         return
-
     if not is_allowed_voter_id(voter_id):
         if REQUIRE_COMPANY_EMAIL:
             st.error(f"Usa o teu email da empresa (@{EMAIL_DOMAIN}).")
         else:
             st.error("Introduz um identificador válido.")
         return
-
     voter_key = normalize_voter_id(voter_id)
     votes_df = load_votes()
-
     # Descobre em que categorias esta pessoa já votou.
     already_voted = set()
     if not votes_df.empty:
         already_voted = set(
             votes_df[votes_df["voter_id"] == voter_key]["category"].tolist()
         )
-
     remaining = [category for category in CATEGORIES if category not in already_voted]
     completed = [category for category in CATEGORIES if category in already_voted]
-
     c1, c2 = st.columns(2)
     c1.metric("Respondidas", len(completed))
     c2.metric("Por responder", len(remaining))
-
     # Quando termina tudo, mostramos resumo pessoal.
     if not remaining:
         st.success("Já respondeste a tudo. Missão cumprida. 🏁")
@@ -442,18 +395,14 @@ def render_vote_page() -> None:
             unsafe_allow_html=True,
         )
         return
-
     # Mostra apenas a próxima categoria que falta.
     current_category = remaining[0]
     nominees = get_nominees(current_category)
-
     st.progress(
         len(completed) / len(CATEGORIES),
         text=f"Pergunta {len(completed) + 1} de {len(CATEGORIES)}",
     )
-
     st.markdown(f"## {current_category}")
-
     selected_employee = st.selectbox(
         "Escolhe 1 colega",
         nominees,
@@ -461,39 +410,30 @@ def render_vote_page() -> None:
         placeholder="Seleciona um nome",
         key=f"vote_{current_category}",
     )
-
     if st.button("Submeter e continuar", use_container_width=True, type="primary"):
         if not selected_employee:
             st.warning("Escolhe um colega antes de submeter.")
             st.stop()
-
         result = save_vote(voter_id, current_category, selected_employee)
-
         if result == "ok":
             st.success("Voto registado com sucesso ✅")
             st.rerun()
         else:
             st.error("Este identificador já votou nesta categoria.")
 
-
 # =========================================================
 # UI - QR CODE
 # =========================================================
 def render_qr_page() -> None:
     import base64
-
     show_header()
     st.subheader("🔳 QCode")
-
     app_url = st.text_input("URL pública da app", value=APP_URL)
-
     if not app_url:
         st.warning("Adiciona a URL pública da app.")
         return
-
     qr_img = generate_qr_image(app_url)
     qr_b64 = base64.b64encode(qr_img.read()).decode()
-
     st.markdown(
         f"""
         <style>
@@ -537,11 +477,10 @@ def render_qr_page() -> None:
             font-size: 1rem;
             margin-bottom: 16px;
         }}
-        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QCode" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCECHO Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QCode, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p><p><a href="{app_url.replace('mode=vote', 'mode=present')}" target="_blank" style="color:#6BAE8A;">Ver apresentação standalone (sem menu)</a></p></div></div>
+        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QCode" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCECHO Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QCode, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p></div></div>
         """,
         unsafe_allow_html=True,
     )
-
 
 # =========================================================
 # UI - CÁLCULO DE RESULTADOS
@@ -549,10 +488,8 @@ def render_qr_page() -> None:
 def build_results_for_category(votes_df: pd.DataFrame, category: str) -> pd.DataFrame:
     # Filtra só os votos da categoria atual.
     category_df = votes_df[votes_df["category"] == category]
-
     if category_df.empty:
         return pd.DataFrame(columns=["employee", "votes", "percentage"])
-
     # Conta quantos votos teve cada colaborador.
     results = (
         category_df.groupby("employee")
@@ -560,27 +497,21 @@ def build_results_for_category(votes_df: pd.DataFrame, category: str) -> pd.Data
         .reset_index(name="votes")
         .sort_values(["votes", "employee"], ascending=[False, True])
     )
-
     total_votes = int(results["votes"].sum())
-
     # Calcula percentagem por colaborador dentro da categoria.
     results["percentage"] = (
         ((results["votes"] / total_votes) * 100).round(1) if total_votes else 0
     )
-
     return results
-
 
 # =========================================================
 # UI - APRESENTAÇÃO AO VIVO
 # =========================================================
-
-def render_live_page(standalone: bool = False) -> None:
+def render_live_page() -> None:
     current_index = get_presentation_index()
     current_category = CATEGORIES[current_index]
     reveal = get_reveal_results()
     votes_df = load_votes()
-
     # ── Fundo CPC azul ─────────────────────────────────────
     st.markdown(
         """
@@ -633,20 +564,6 @@ def render_live_page(standalone: bool = False) -> None:
         """,
         unsafe_allow_html=True,
     )
-
-    if standalone:
-        # Remove sidebar + menu in standalone mode
-        st.markdown(
-            """
-            <style>
-            [data-testid='stSidebar'] {display: none !important;}
-            [data-testid='stToolbar'] {display: none !important;}
-            [data-testid='stHeader'] {display: none !important;}
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-
     # ── CSS específico das setas no header e olho na categoria ───────
     st.markdown(
         """
@@ -682,35 +599,32 @@ def render_live_page(standalone: bool = False) -> None:
         unsafe_allow_html=True,
     )
 
-
     # ── Header com setas + olho na mesma linha ───────────────────────
-    if not standalone:
-        hcol_title, hcol_prev, hcol_next, hcol_eye = st.columns([10, 0.55, 0.55, 0.55])
-        with hcol_title:
-            st.markdown(
-                '<div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px 0;">'
-                '<span style="font-size:2.5rem;line-height:1;">🏆</span>'
-                '<div>'
-                '<h1 style="color:#FFFFFF;font-size:2.5rem;margin:0;line-height:1.1;font-family:\'Lato\',sans-serif;">CPCECHO Awards</h1>'
-                '<p style="color:#8b9ab0;font-size:1rem;margin:0;font-family:\'Lato\',sans-serif;">Powered by SmartLabs @ CPCECHO 😎</p>'
-                '</div></div>',
-                unsafe_allow_html=True,
-            )
-        with hcol_prev:
-            if st.button("◀", key="live_prev_icon", help="Categoria anterior", disabled=current_index == 0, use_container_width=True):
-                set_presentation_index(current_index - 1)
-                set_reveal_results(False)
-                st.rerun()
-        with hcol_next:
-            if st.button("▶", key="live_next_icon", help="Próxima categoria", disabled=current_index == len(CATEGORIES) - 1, use_container_width=True):
-                set_presentation_index(current_index + 1)
-                set_reveal_results(False)
-                st.rerun()
-        with hcol_eye:
-            if st.button("👁" if not reveal else "⊘", key="live_eye_icon", help="Mostrar/Esconder resultados", use_container_width=True):
-                set_reveal_results(not reveal)
-                st.rerun()
-
+    hcol_title, hcol_prev, hcol_next, hcol_eye = st.columns([10, 0.55, 0.55, 0.55])
+    with hcol_title:
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px 0;">'
+            '<span style="font-size:2.5rem;line-height:1;">🏆</span>'
+            '<div>'
+            '<h1 style="color:#FFFFFF;font-size:2.5rem;margin:0;line-height:1.1;font-family:\'Lato\',sans-serif;">CPCECHO Awards</h1>'
+            '<p style="color:#8b9ab0;font-size:1rem;margin:0;font-family:\'Lato\',sans-serif;">Powered by SmartLabs @ CPCECHO 😎</p>'
+            '</div></div>',
+            unsafe_allow_html=True,
+        )
+    with hcol_prev:
+        if st.button("◀", key="live_prev_icon", help="Categoria anterior", disabled=current_index == 0, use_container_width=True):
+            set_presentation_index(current_index - 1)
+            set_reveal_results(False)
+            st.rerun()
+    with hcol_next:
+        if st.button("▶", key="live_next_icon", help="Próxima categoria", disabled=current_index == len(CATEGORIES) - 1, use_container_width=True):
+            set_presentation_index(current_index + 1)
+            set_reveal_results(False)
+            st.rerun()
+    with hcol_eye:
+        if st.button("👁" if not reveal else "⊘", key="live_eye_icon", help="Mostrar/Esconder resultados", use_container_width=True):
+            set_reveal_results(not reveal)
+            st.rerun()
     # ── Indicador de progresso ────────────────────────────────────────
     st.markdown(
         f'<div style="text-align:right;color:#a8d4e8;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;padding:2px 0 10px 0;">'
@@ -718,10 +632,8 @@ def render_live_page(standalone: bool = False) -> None:
         f'</div>',
         unsafe_allow_html=True,
     )
-
     total_votes = len(votes_df[votes_df["category"] == current_category])
     votes_label = f'{total_votes} voto{"s" if total_votes != 1 else ""}'
-
     if not reveal:
         card_content = (
             '<div style="text-align:center;padding:32px 0;">'
@@ -767,7 +679,6 @@ def render_live_page(standalone: bool = False) -> None:
                 )
         no_votes_html = '<div style="color:#8b9ab0;text-align:center;padding:16px;">Ainda não há votos.</div>' if results.empty else ""
         card_content = leader_html + no_votes_html + bars_html
-
     # ── Card: título + votos + conteúdo ──────────────────────────────
     st.markdown(
         f'<div style="background:#071828;border-radius:16px;padding:28px 32px;">'
@@ -781,7 +692,6 @@ def render_live_page(standalone: bool = False) -> None:
         unsafe_allow_html=True,
     )
 
-
 # =========================================================
 # UI - RESUMO FINAL
 # =========================================================
@@ -789,39 +699,28 @@ def render_final_summary_page() -> None:
     show_header()
     st.subheader("📊 Resumo final")
     st.write("Aqui tens o ranking completo de todas as categorias.")
-
     votes_df = load_votes()
-
     if votes_df.empty:
         st.info("Ainda não há votos submetidos.")
         return
-
     s1, s2 = st.columns(2)
     s1.metric("Total de votos", len(votes_df))
     s2.metric("Votantes únicos", votes_df["voter_id"].nunique())
-
     for idx, category in enumerate(CATEGORIES, start=1):
         st.markdown(f"## {idx}. {category}")
-
         results = build_results_for_category(votes_df, category)
-
         if results.empty:
             st.caption("Ainda sem votos.")
             st.divider()
             continue
-
         winner = results.iloc[0]["employee"]
         winner_votes = int(results.iloc[0]["votes"])
-
         st.success(f"Vencedor atual: {winner} com {winner_votes} votos")
-
         display_df = results.rename(
             columns={"employee": "Colaborador", "votes": "Votos", "percentage": "%"}
         )
-
         if not SHOW_PERCENTAGES:
             display_df = display_df[["Colaborador", "Votos"]]
-
         cols = votes_df.columns.tolist()
         header_cells = "".join(
             f'<th style="background:#1a3348;color:#FFFFFF;padding:10px 16px;text-align:left;font-weight:700;border-bottom:2px solid rgba(255,255,255,0.2);">{c}</th>'
@@ -844,49 +743,39 @@ def render_final_summary_page() -> None:
         )
         st.divider()
 
-
 # =========================================================
 # UI - ADMIN
 # =========================================================
 def render_admin_page() -> None:
     show_header()
     st.subheader("🛠️ Admin")
-
     code = st.text_input("Código admin", type="password")
     if code != ADMIN_CODE:
         st.info("Introduz o código de admin.")
         return
-
     st.success("Acesso admin autorizado.")
-
     current_index = get_presentation_index()
     current_category = CATEGORIES[current_index]
     reveal = get_reveal_results()
-
     st.write("### Controlo da apresentação")
     st.write(f"Categoria atual: **{current_index + 1}. {current_category}**")
     st.write(f"Resultados visíveis: **{'Sim' if reveal else 'Não'}**")
-
     col1, col2, col3, col4 = st.columns(4)
-
     with col1:
         if st.button("Reset categoria 1", use_container_width=True):
             set_presentation_index(0)
             set_reveal_results(False)
             st.rerun()
-
     with col2:
         if st.button("Back", use_container_width=True, disabled=current_index == 0):
             set_presentation_index(current_index - 1)
             set_reveal_results(False)
             st.rerun()
-
     with col3:
         if st.button("Next", use_container_width=True, disabled=current_index == len(CATEGORIES) - 1):
             set_presentation_index(current_index + 1)
             set_reveal_results(False)
             st.rerun()
-
     with col4:
         if not reveal:
             if st.button("Ver", use_container_width=True):
@@ -896,10 +785,8 @@ def render_admin_page() -> None:
             if st.button("Esconder", use_container_width=True):
                 set_reveal_results(False)
                 st.rerun()
-
     st.write("### Exportar votos")
     votes_df = load_votes()
-
     if votes_df.empty:
         st.caption("Ainda não existem votos.")
     else:
@@ -930,10 +817,8 @@ def render_admin_page() -> None:
             f'</table>',
             unsafe_allow_html=True,
         )
-
     st.write("### Danger zone ☠️")
     confirm_reset = st.checkbox("Confirmo que quero apagar todos os votos")
-
     if st.button("Apagar todos os votos", type="secondary", use_container_width=True):
         if confirm_reset:
             delete_all_votes()
@@ -944,19 +829,16 @@ def render_admin_page() -> None:
         else:
             st.error("Tens de confirmar primeiro.")
 
-
 # =========================================================
 # MAIN
 # =========================================================
 init_db()
-
 # Pequenos ajustes visuais.
 st.markdown(
     """
     <style>
         .block-container {padding-top: 1.2rem; padding-bottom: 2rem;}
         div[data-testid="stMetricValue"] {font-size: 2rem;}
-
         /* ── Fundo CPC azul (global) ── */
         [data-testid="stAppViewContainer"],
         [data-testid="stAppViewContainer"] > div:first-child,
@@ -970,7 +852,6 @@ st.markdown(
         [data-testid="stToolbar"] {
             background-color: #0f2d45 !important;
         }
-
         /* Header card */
         .header-container {
             background-color: rgba(255,255,255,0.05) !important;
@@ -982,7 +863,6 @@ st.markdown(
         .header-subtitle {
             color: #8b9ab0 !important;
         }
-
         /* Sidebar */
         [data-testid="stSidebar"] {
             background-color: #0a1e2e !important;
@@ -990,7 +870,6 @@ st.markdown(
         [data-testid="stSidebar"] * {
             color: #8b9ab0 !important;
         }
-
         /* Texto geral sobre fundo escuro */
         body, p, span, label, div {
             color: #FFFFFF;
@@ -1000,7 +879,6 @@ st.markdown(
             color: #FFFFFF !important;
             font-family: 'Lato', sans-serif;
         }
-
         /* Inputs de texto */
         .stTextInput input, .stTextArea textarea,
         [data-baseweb="input"] > div {
@@ -1009,7 +887,6 @@ st.markdown(
             border-radius: 8px;
             border: 1px solid rgba(255,255,255,0.2) !important;
         }
-
         /* Selectbox — azul */
         .stSelectbox select,
         [data-baseweb="select"] > div:first-child,
@@ -1021,7 +898,6 @@ st.markdown(
             border-radius: 8px;
             border: 1px solid rgba(255,255,255,0.18) !important;
         }
-
 /* Botões sobre fundo escuro */
         .stButton > button {
             background-color: rgba(255,255,255,0.12) !important;
@@ -1037,7 +913,6 @@ st.markdown(
             border-color: #6BAE8A !important;
             color: #0f3a52 !important;
         }
-
         /* Tabelas (st.dataframe) */
         .dvn-scroller,
         [data-testid="glideDataEditor"],
@@ -1045,18 +920,15 @@ st.markdown(
         .glide-data-grid-data-editor {
             background-color: #203c52 !important;
         }
-
         /* Métricas */
         .stMetric {
             background-color: rgba(255,255,255,0.07);
             border-radius: 8px;
             padding: 10px;
         }
-
         .stSuccess, .stInfo, .stWarning, .stError {
             border-radius: 8px;
         }
-
         /* Esconder o botão de toggle light/dark do Streamlit */
         [data-testid="baseButton-header"],
         button[title="View fullscreen"],
@@ -1067,25 +939,19 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 if mode == "vote":
     page = "Vote"
-elif mode == "present":
-    render_live_page(standalone=True)
-    st.stop()
 else:
     page = st.sidebar.radio(
         "Navigation",
         ["Vote", "QCode", "Live Presentation", "Final Summary", "Admin"],
         index=0,
     )
-
 st.sidebar.markdown("---")
 st.sidebar.write("**CPCECHO Awards**")
 st.sidebar.caption("Built by SmartLabs @ CPCECHO")
 st.sidebar.caption(f"Categorias: {len(CATEGORIES)}")
 st.sidebar.caption(f"Colaboradores: {len(EMPLOYEES)}")
-
 
 if page == "Vote":
     render_vote_page()
