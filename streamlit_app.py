@@ -177,7 +177,7 @@ CATEGORIES: List[str] = [
     "Motor da Evolução 🚀",
     "Pessoa Mais Confiável 🔒",
     "Megafone da Comunicação 📣",
-    "Mais Nhonhinha da Equipa 🤪",
+    "Mais Nhonhinha da Equipa 🧸",
     "Resolve Tudo Antes de Ser Problema 🛠️",
 ]
 
