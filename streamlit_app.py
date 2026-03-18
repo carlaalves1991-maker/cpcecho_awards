@@ -7,6 +7,7 @@ from typing import List
 import pandas as pd
 import qrcode
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 # =========================================================
 # SMARTLABS @ CPCECHO - Awards App
 # =========================================================
@@ -513,6 +514,9 @@ def build_results_for_category(votes_df: pd.DataFrame, category: str) -> pd.Data
 # UI - APRESENTAÇÃO AO VIVO
 # =========================================================
 def render_live_page(standalone: bool = False) -> None:
+    # Auto-refresh para ver updates de votos automaticamente
+    st_autorefresh(interval=5_000, key="live_refresh")
+
     current_index = get_presentation_index()
     current_category = CATEGORIES[current_index]
     reveal = get_reveal_results()
@@ -650,6 +654,7 @@ def render_live_page(standalone: bool = False) -> None:
     )
     total_votes = len(votes_df[votes_df["category"] == current_category])
     votes_label = f'{total_votes} voto{"s" if total_votes != 1 else ""}'
+
     if not reveal:
         card_content = (
             '<div style="text-align:center;padding:32px 0;">'
@@ -695,12 +700,19 @@ def render_live_page(standalone: bool = False) -> None:
                 )
         no_votes_html = '<div style="color:#8b9ab0;text-align:center;padding:16px;">Ainda não há votos.</div>' if results.empty else ""
         card_content = leader_html + no_votes_html + bars_html
+
     # ── Card: título + votos + conteúdo ──────────────────────────────
+    votes_html = (
+        f'<span style="color:#6BAE8A;font-size:1.4rem;font-weight:700;">{votes_label}</span>'
+        if not standalone
+        else ""
+    )
+
     st.markdown(
         f'<div style="background:#071828;border-radius:16px;padding:28px 32px;">'
         f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
         f'<h2 style="color:#FFFFFF;font-size:clamp(1.4rem,2.5vw,2rem);font-weight:800;margin:0;">{current_category}</h2>'
-        f'<span style="color:#6BAE8A;font-size:1.4rem;font-weight:700;">{votes_label}</span>'
+        f'{votes_html}'
         f'</div>'
         f'<hr style="border-color:rgba(255,255,255,0.15);margin:12px 0 20px 0;">'
         f'{card_content}'
