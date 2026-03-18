@@ -69,7 +69,7 @@ CATEGORIES: List[str] = [
     "Motor da Evolução 🚀",
     "Pessoa Mais Confiável 🔒",
     "Megafone da Comunicação 📣",
-    "Mais Nhonhinha da Equipa 🧸",
+    "Mais Nhonhinha da Equipa 🤪",
     "Resolve Tudo Antes de Ser Problema 🛠️",
 ]
 # -----------------------------
@@ -336,15 +336,13 @@ def show_header() -> None:
         """,
         unsafe_allow_html=True,
     )
-    # Mostrar o logo (quando disponível) ao lado do título.
     logo_html = (
-        f'<img src="data:image/jpeg;base64,{LOGO_B64}" '
-        f'style="height:64px;width:64px;object-fit:contain;flex-shrink:0;" alt="Logo">'
-        if LOGO_B64
-        else ''
+        f'<img src="data:image/jpeg;base64,{LOGO_B64}" style="height:96px;width:96px;object-fit:contain;flex-shrink:0;" alt="Logo">'
+        if LOGO_B64 else
+        '<span style="font-size:2rem;line-height:1;">🏆</span>'
     )
     st.markdown(
-        f'<div class="header-container" style="display:flex;align-items:flex-start;gap:12px;">'
+        f'<div class="header-container" style="display:flex;align-items:flex-start;gap:4px;">'
         f'{logo_html}'
         f'<div><h1 class="header-title">CPCECHO Awards</h1>'
         f'<p class="header-subtitle">Powered by SmartLabs @ CPCECHO 😎</p></div></div>',
@@ -358,8 +356,8 @@ def render_vote_page() -> None:
     st.subheader("📱 Votar")
     st.write("Uma pergunta de cada vez. Sem spoilers. Sem batota.")
     voter_id = st.text_input(
-        "O teu identificador",
-        placeholder="Ex: email",
+        "O teu email",
+        placeholder="Ex: email@cpcecho.pt",
         help=(
             f"Se REQUIRE_COMPANY_EMAIL = True, tens de usar @{EMAIL_DOMAIN}."
             if REQUIRE_COMPANY_EMAIL
@@ -367,13 +365,13 @@ def render_vote_page() -> None:
         ),
     )
     if not voter_id:
-        st.info("Introduz o teu identificador para começar.")
+        st.info("Introduz o teu email para começar.")
         return
     if not is_allowed_voter_id(voter_id):
         if REQUIRE_COMPANY_EMAIL:
             st.error(f"Usa o teu email da empresa (@{EMAIL_DOMAIN}).")
         else:
-            st.error("Introduz um identificador válido.")
+            st.error("Introduz um email válido.")
         return
     voter_key = normalize_voter_id(voter_id)
     votes_df = load_votes()
@@ -385,9 +383,12 @@ def render_vote_page() -> None:
         )
     remaining = [category for category in CATEGORIES if category not in already_voted]
     completed = [category for category in CATEGORIES if category in already_voted]
-    c1, c2 = st.columns(2)
-    c1.metric("Respondidas", len(completed))
-    c2.metric("Por responder", len(remaining))
+    st.markdown(
+            f'<p style="color:#8b9ab0;font-size:0.85rem;margin-bottom:16px;">'
+            f'Respondidas: <strong>{len(completed)}</strong> &nbsp;·&nbsp; Por responder: <strong>{len(remaining)}</strong>'
+            f'</p>',
+            unsafe_allow_html=True,
+        )
     # Quando termina tudo, mostramos resumo pessoal.
     if not remaining:
         st.success("Já respondeste a tudo. Missão cumprida. 🏁")
@@ -532,8 +533,8 @@ def build_results_for_category(votes_df: pd.DataFrame, category: str) -> pd.Data
 # UI - APRESENTAÇÃO AO VIVO
 # =========================================================
 def render_live_page(standalone: bool = False) -> None:
-    # Auto-refresh a cada 5 segundos sem pacotes externos
-    st.markdown('<meta http-equiv="refresh" content="5">', unsafe_allow_html=True)
+    # Auto-refresh a cada 20 segundos sem pacotes externos
+    st.markdown('<meta http-equiv="refresh" content="20">', unsafe_allow_html=True)
     current_index = get_presentation_index()
     current_category = CATEGORIES[current_index]
     reveal = get_reveal_results()
@@ -638,15 +639,8 @@ def render_live_page(standalone: bool = False) -> None:
     # ── Header com setas + olho na mesma linha ───────────────────────
     hcol_title, hcol_prev, hcol_next, hcol_eye = st.columns([10, 0.55, 0.55, 0.55])
     with hcol_title:
-        live_logo_html = (
-            f'<img src="data:image/jpeg;base64,{LOGO_B64}" '
-            f'style="height:52px;width:52px;object-fit:contain;flex-shrink:0;filter:brightness(0) invert(1);" alt="Logo">'
-            if LOGO_B64
-            else ''
-        )
         st.markdown(
             f'<div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px 0;">'
-            f'{live_logo_html}'
             f'<div>'
             f'<h1 style="color:#FFFFFF;font-size:2.5rem;margin:0;line-height:1.1;font-family:\'Lato\',sans-serif;">CPCECHO Awards</h1>'
             f'<p style="color:#8b9ab0;font-size:1rem;margin:0;font-family:\'Lato\',sans-serif;">Powered by SmartLabs @ CPCECHO 😎</p>'
@@ -654,12 +648,12 @@ def render_live_page(standalone: bool = False) -> None:
             unsafe_allow_html=True,
         )
     with hcol_prev:
-        if st.button("◀️", key="live_prev_icon", help="Categoria anterior", disabled=current_index == 0, use_container_width=True):
+        if st.button("◀", key="live_prev_icon", help="Categoria anterior", disabled=current_index == 0, use_container_width=True):
             set_presentation_index(current_index - 1)
             set_reveal_results(False)
             st.rerun()
     with hcol_next:
-        if st.button("▶️", key="live_next_icon", help="Próxima categoria", disabled=current_index == len(CATEGORIES) - 1, use_container_width=True):
+        if st.button("▶", key="live_next_icon", help="Próxima categoria", disabled=current_index == len(CATEGORIES) - 1, use_container_width=True):
             set_presentation_index(current_index + 1)
             set_reveal_results(False)
             st.rerun()
@@ -806,8 +800,8 @@ def render_admin_page() -> None:
     current_category = CATEGORIES[current_index]
     reveal = get_reveal_results()
     st.write("### Controlo da apresentação")
-    st.write(f"Categoria atual: *{current_index + 1}. {current_category}*")
-    st.write(f"Resultados visíveis: *{'Sim' if reveal else 'Não'}*")
+    st.write(f"Categoria atual: **{current_index + 1}. {current_category}**")
+    st.write(f"Resultados visíveis: **{'Sim' if reveal else 'Não'}**")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         if st.button("Reset categoria 1", use_container_width=True):
@@ -914,11 +908,11 @@ elif mode == "present":
 else:
     page = st.sidebar.radio(
         "Navigation",
-        ["Vote", "QCode", "Live Presentation", "Final Summary", "Admin"],
+        ["Vote", "QCode", "Final Summary", "Admin"],
         index=0,
     )
 st.sidebar.markdown("---")
-st.sidebar.write("*CPCECHO Awards*")
+st.sidebar.write("**CPCECHO Awards**")
 st.sidebar.caption("Built by SmartLabs @ CPCECHO")
 st.sidebar.caption(f"Categorias: {len(CATEGORIES)}")
 st.sidebar.caption(f"Colaboradores: {len(EMPLOYEES)}")
@@ -926,8 +920,6 @@ if page == "Vote":
     render_vote_page()
 elif page == "QCode":
     render_qr_page()
-elif page == "Live Presentation":
-    render_live_page()
 elif page == "Final Summary":
     render_final_summary_page()
 else:
