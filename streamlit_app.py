@@ -478,7 +478,7 @@ def render_vote_page() -> None:
                 st.success("Voto atualizado com sucesso ✅")
             else:
                 st.success("Voto registado com sucesso ✅")
-            st.experimental_rerun()
+            st.rerun()
     with col2:
         if st.button("Pular categoria", use_container_width=True):
             current_idx = category_labels.index(selected_label)
@@ -492,7 +492,7 @@ def render_vote_page() -> None:
             if next_idx is None:
                 next_idx = (current_idx + 1) % len(category_labels)
             st.session_state["vote_category"] = category_labels[next_idx]
-            st.experimental_rerun()
+            st.rerun()
 
 # =========================================================
 # UI - QR CODE
