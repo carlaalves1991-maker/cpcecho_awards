@@ -18,7 +18,7 @@ import streamlit as st
 #   streamlit run streamlit_app.py
 #
 # O que esta app faz:
-# - Votação por telemóvel com QR code
+# - Votação por telemóvel com QCode
 # - 10 categorias
 # - 1 voto por pessoa em cada categoria
 # - Mostra apenas 1 pergunta de cada vez ao votante
@@ -483,7 +483,7 @@ def render_qr_page() -> None:
     import base64
 
     show_header()
-    st.subheader("🔳 QR Code")
+    st.subheader("🔳 QCode")
 
     app_url = st.text_input("URL pública da app", value=APP_URL)
 
@@ -537,7 +537,7 @@ def render_qr_page() -> None:
             font-size: 1rem;
             margin-bottom: 16px;
         }}
-        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QR Code" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCECHO Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QR code, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p></div></div>
+        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QCode" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCECHO Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QCode, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p></div></div>
         """,
         unsafe_allow_html=True,
     )
@@ -1059,7 +1059,7 @@ if mode == "vote":
 else:
     page = st.sidebar.radio(
         "Navigation",
-        ["Vote", "QR Code", "Live Presentation", "Final Summary", "Admin"],
+        ["Vote", "QCode", "Live Presentation", "Final Summary", "Admin"],
         index=0,
     )
 
@@ -1072,7 +1072,7 @@ st.sidebar.caption(f"Colaboradores: {len(EMPLOYEES)}")
 
 if page == "Vote":
     render_vote_page()
-elif page == "QR Code":
+elif page == "QCode":
     render_qr_page()
 elif page == "Live Presentation":
     render_live_page()
