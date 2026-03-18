@@ -225,6 +225,35 @@ def save_vote(voter_id: str, category: str, employee: str) -> str:
     finally:
         conn.close()
 
+
+def upsert_vote(voter_id: str, category: str, employee: str) -> str:
+    """Cria ou atualiza um voto (útil para corrigir uma escolha)."""
+    voter_id = normalize_voter_id(voter_id)
+    conn = get_conn()
+    try:
+        cursor = conn.execute(
+            "SELECT id FROM votes WHERE voter_id = ? AND category = ?",
+            (voter_id, category),
+        )
+        row = cursor.fetchone()
+        if row:
+            conn.execute(
+                "UPDATE votes SET employee = ? WHERE voter_id = ? AND category = ?",
+                (employee, voter_id, category),
+            )
+            conn.commit()
+            return "updated"
+        else:
+            conn.execute(
+                "INSERT INTO votes (voter_id, category, employee) VALUES (?, ?, ?)",
+                (voter_id, category, employee),
+            )
+            conn.commit()
+            return "ok"
+    finally:
+        conn.close()
+
+
 def load_votes() -> pd.DataFrame:
     conn = get_conn()
     df = pd.read_sql_query(
@@ -366,61 +395,104 @@ def render_vote_page() -> None:
         )
     remaining = [category for category in CATEGORIES if category not in already_voted]
     completed = [category for category in CATEGORIES if category in already_voted]
-    c1, c2 = st.columns(2)
-    c1.metric("Respondidas", len(completed))
-    c2.metric("Por responder", len(remaining))
-    # Quando termina tudo, mostramos resumo pessoal.
+
+    # Indicador de progresso (mais compacto para mobile)
+    st.markdown(
+        f"**Progresso:** {len(completed)}/{len(CATEGORIES)} categorias respondidas  •  "
+        f"**Faltam:** {len(remaining)}"
+    )
+    st.progress(len(completed) / len(CATEGORIES))
+
     if not remaining:
-        st.success("Já respondeste a tudo. Missão cumprida. 🏁")
-        my_votes = votes_df[votes_df["voter_id"] == voter_key][["category", "employee"]].copy()
-        my_votes.columns = ["Categoria", "O teu voto"]
-        st.write("### O teu resumo final")
-        cols = my_votes.columns.tolist()
-        header_cells = "".join(
-            f'<th style="background:#1a3348;color:#FFFFFF;padding:10px 16px;text-align:left;font-weight:700;border-bottom:2px solid rgba(255,255,255,0.2);">{c}</th>'
-            for c in cols
-        )
-        rows_html = ""
-        for i, row in my_votes.iterrows():
-            bg = "#203c52" if i % 2 == 0 else "#1a3045"
-            cells = "".join(
-                f'<td style="padding:9px 16px;color:#FFFFFF;border-bottom:1px solid rgba(255,255,255,0.08);">{row[c]}</td>'
+        st.success("Já respondeste a tudo. Podes voltar e atualizar os teus votos se quiseres.")
+        with st.expander("Ver o meu resumo", expanded=False):
+            my_votes = votes_df[votes_df["voter_id"] == voter_key][["category", "employee"]].copy()
+            my_votes.columns = ["Categoria", "O teu voto"]
+            cols = my_votes.columns.tolist()
+            header_cells = "".join(
+                f'<th style="background:#1a3348;color:#FFFFFF;padding:10px 16px;text-align:left;font-weight:700;border-bottom:2px solid rgba(255,255,255,0.2);">{c}</th>'
                 for c in cols
             )
-            rows_html += f'<tr style="background:{bg};">{cells}</tr>'
-        st.markdown(
-            f'<table style="width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;">'
-            f'<thead><tr>{header_cells}</tr></thead>'
-            f'<tbody>{rows_html}</tbody>'
-            f'</table>',
-            unsafe_allow_html=True,
-        )
-        return
-    # Mostra apenas a próxima categoria que falta.
-    current_category = remaining[0]
-    nominees = get_nominees(current_category)
-    st.progress(
-        len(completed) / len(CATEGORIES),
-        text=f"Pergunta {len(completed) + 1} de {len(CATEGORIES)}",
+            rows_html = ""
+            for i, row in my_votes.iterrows():
+                bg = "#203c52" if i % 2 == 0 else "#1a3045"
+                cells = "".join(
+                    f'<td style="padding:9px 16px;color:#FFFFFF;border-bottom:1px solid rgba(255,255,255,0.08);">{row[c]}</td>'
+                    for c in cols
+                )
+                rows_html += f'<tr style="background:{bg};">{cells}</tr>'
+            st.markdown(
+                f'<table style="width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;">'
+                f'<thead><tr>{header_cells}</tr></thead>'
+                f'<tbody>{rows_html}</tbody>'
+                f'</table>',
+                unsafe_allow_html=True,
+            )
+
+    # Seleciona a categoria atual (pode ser atualizada / pulada)
+    category_labels = []
+    label_to_category = {}
+    for cat in CATEGORIES:
+        label = f"{cat} ✅" if cat in already_voted else cat
+        category_labels.append(label)
+        label_to_category[label] = cat
+
+    selected_label = st.selectbox(
+        "Categoria",
+        category_labels,
+        index=category_labels.index(st.session_state.get("vote_category", category_labels[0]))
+        if st.session_state.get("vote_category") in category_labels
+        else 0,
+        key="vote_category",
     )
-    st.markdown(f"## {current_category}")
+    current_category = label_to_category[selected_label]
+
+    # Se já votou nesta categoria, mostra a escolha atual para permitir alteração.
+    current_vote = None
+    if current_category in already_voted:
+        current_vote = (
+            votes_df[
+                (votes_df["voter_id"] == voter_key)
+                & (votes_df["category"] == current_category)
+            ]["employee"]
+            .iloc[0]
+        )
+        st.info(f"Já votaste nesta categoria: **{current_vote}**. Podes atualizar abaixo.")
+
+    nominees = get_nominees(current_category)
     selected_employee = st.selectbox(
         "Escolhe 1 colega",
         nominees,
-        index=None,
-        placeholder="Seleciona um nome",
+        index=nominees.index(current_vote) if current_vote in nominees else 0,
         key=f"vote_{current_category}",
     )
-    if st.button("Submeter e continuar", use_container_width=True, type="primary"):
-        if not selected_employee:
-            st.warning("Escolhe um colega antes de submeter.")
-            st.stop()
-        result = save_vote(voter_id, current_category, selected_employee)
-        if result == "ok":
-            st.success("Voto registado com sucesso ✅")
-            st.rerun()
-        else:
-            st.error("Este identificador já votou nesta categoria.")
+
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        if st.button("Guardar voto", use_container_width=True, type="primary"):
+            if not selected_employee:
+                st.warning("Escolhe um colega antes de guardar.")
+                st.stop()
+            result = upsert_vote(voter_id, current_category, selected_employee)
+            if result == "updated":
+                st.success("Voto atualizado com sucesso ✅")
+            else:
+                st.success("Voto registado com sucesso ✅")
+            st.experimental_rerun()
+    with col2:
+        if st.button("Pular categoria", use_container_width=True):
+            current_idx = category_labels.index(selected_label)
+            next_idx = None
+            for i in range(1, len(category_labels)):
+                candidate_idx = (current_idx + i) % len(category_labels)
+                candidate_cat = label_to_category[category_labels[candidate_idx]]
+                if candidate_cat not in already_voted:
+                    next_idx = candidate_idx
+                    break
+            if next_idx is None:
+                next_idx = (current_idx + 1) % len(category_labels)
+            st.session_state["vote_category"] = category_labels[next_idx]
+            st.experimental_rerun()
 
 # =========================================================
 # UI - QR CODE
