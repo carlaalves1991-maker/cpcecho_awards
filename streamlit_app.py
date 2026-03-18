@@ -864,18 +864,43 @@ def render_final_summary_page() -> None:
             )
 
         cards.append(
-            f'<div style="background:#f4f8ff;border-radius:16px;padding:18px;box-shadow:0 10px 18px rgba(0,0,0,0.08);min-height:160px;">'
+            f'<div class="card" style="background:#f4f8ff;border-radius:16px;padding:18px;box-shadow:0 10px 18px rgba(0,0,0,0.08);min-height:160px;">'
             f'<div style="font-size:1rem;font-weight:800;color:#0f3a52;margin-bottom:10px;">{category}</div>'
             f'{winner_html}'
             f'</div>'
         )
 
-    for i in range(0, len(cards), 3):
-        row_cards = cards[i : i + 3]
-        cols = st.columns(len(row_cards))
-        for col, card in zip(cols, row_cards):
-            with col:
-                st.markdown(card, unsafe_allow_html=True)
+    cards_html = "".join(cards)
+    st.markdown(
+        f"""
+        <style>
+        .summary-cards {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 16px;
+            justify-content: center;
+        }}
+        .summary-cards .card {{
+            flex: 1 1 280px;
+            max-width: 32%;
+            min-width: 240px;
+        }}
+        @media (max-width: 900px) {{
+            .summary-cards .card {{
+                max-width: 48%;
+            }}
+        }}
+        @media (max-width: 520px) {{
+            .summary-cards .card {{
+                max-width: 100%;
+            }}
+        }}
+        </style>
+        <div class="summary-cards">{cards_html}</div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # =========================================================
