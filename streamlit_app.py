@@ -10,7 +10,7 @@ import streamlit as st
 
 # Logo em base64 para usar em qualquer contexto HTML
 def _load_logo_b64() -> str:
-    logo_path = Path(_file_).parent / "logo.jpg"
+    logo_path = Path(__file__).parent / "logo.jpg"
     if logo_path.exists():
         return base64.b64encode(logo_path.read_bytes()).decode()
     return ""
