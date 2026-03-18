@@ -34,9 +34,112 @@ st.set_page_config(
     page_icon="🏆",
     layout="wide",
 )
-query_params = st.query_params
-_raw_mode = query_params.get("mode", ["full"])
-mode = _raw_mode[0] if isinstance(_raw_mode, list) and _raw_mode else _raw_mode
+
+# Estilos globais para fundo branco (exceto apresentação)
+st.markdown(
+    """
+    <style>
+    [data-testid="stAppViewContainer"],
+    [data-testid="stAppViewContainer"] > div:first-child,
+    [data-testid="stMain"],
+    .main {
+        background-color: #FFFFFF !important;
+    }
+    [data-testid="stHeader"] {
+        background-color: #FFFFFF !important;
+    }
+    [data-testid="stToolbar"] {
+        background-color: #FFFFFF !important;
+    }
+    body, p, span, label, div {
+        color: #000000;
+        font-family: 'Lato', sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        color: #000000 !important;
+        font-family: 'Lato', sans-serif;
+    }
+    .header-container {
+        background-color: rgba(0,0,0,0.05) !important;
+        box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.1);
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+    .header-title {
+        color: #000000;
+        font-family: 'Lato', sans-serif;
+        font-size: 2.5rem;
+        margin: 0;
+    }
+    .header-subtitle {
+        color: #216390;
+        font-family: 'Lato', sans-serif;
+        font-size: 1rem;
+        margin: 0;
+    }
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #f8f9fa !important;
+    }
+    [data-testid="stSidebar"] * {
+        color: #000000 !important;
+    }
+    /* Inputs */
+    .stTextInput input, .stTextArea textarea,
+    [data-baseweb="input"] > div {
+        background-color: #f8f9fa !important;
+        color: #000000 !important;
+        border-radius: 8px;
+        border: 1px solid #ddd !important;
+    }
+    /* Selectbox */
+    .stSelectbox select,
+    [data-baseweb="select"] > div:first-child,
+    [data-baseweb="popover"] [role="listbox"],
+    [data-baseweb="menu"],
+    [data-baseweb="popover"] ul {
+        background-color: #f8f9fa !important;
+        color: #000000 !important;
+        border-radius: 8px;
+        border: 1px solid #ddd !important;
+    }
+    /* Botões */
+    .stButton > button {
+        background-color: #f8f9fa !important;
+        color: #000000 !important;
+        border: 1px solid #ddd !important;
+        border-radius: 8px;
+    }
+    .stButton > button:hover {
+        background-color: #e9ecef !important;
+    }
+    .stButton > button[kind="primary"] {
+        background-color: #007bff !important;
+        border-color: #007bff !important;
+        color: #FFFFFF !important;
+    }
+    /* Métricas */
+    .stMetric {
+        background-color: rgba(0,0,0,0.05);
+        border-radius: 8px;
+        padding: 10px;
+    }
+    .stSuccess, .stInfo, .stWarning, .stError {
+        border-radius: 8px;
+    }
+    /* Esconder botão toggle */
+    [data-testid="baseButton-header"],
+    button[title="View fullscreen"],
+    [data-testid="stToolbarActions"] {
+        display: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 
 # -----------------------------
@@ -74,7 +177,7 @@ CATEGORIES: List[str] = [
     "Motor da Evolução 🚀",
     "Pessoa Mais Confiável 🔒",
     "Megafone da Comunicação 📣",
-    "Mais Nhonhinha da Equipa 🧸",
+    "Mais Nhonhinha da Equipa 🤪",
     "Resolve Tudo Antes de Ser Problema 🛠️",
 ]
 
@@ -239,37 +342,26 @@ def get_nominees(category: str) -> List[str]:
 
 
 def save_vote(voter_id: str, category: str, employee: str) -> str:
-    """Guarda um voto e devolve:
-    - 'ok' se guardou
-    - 'duplicate' se essa pessoa já votou nessa categoria
-    """
+    """Guarda ou atualiza um voto. Permite edição se já votou."""
     voter_id = normalize_voter_id(voter_id)
     conn = get_conn()
 
     try:
+        # Tenta inserir; se já existe, atualiza
         conn.execute(
-            "INSERT INTO votes (voter_id, category, employee) VALUES (?, ?, ?)",
+            """
+            INSERT INTO votes (voter_id, category, employee)
+            VALUES (?, ?, ?)
+            ON CONFLICT(voter_id, category) DO UPDATE SET
+                employee = excluded.employee,
+                created_at = CURRENT_TIMESTAMP
+            """,
             (voter_id, category, employee),
         )
         conn.commit()
         return "ok"
-    except sqlite3.IntegrityError:
-        # Se o único voto existente é um "skip", permite atualizar para um voto real.
-        if employee != SKIP_VOTE:
-            cursor = conn.execute(
-                "SELECT employee FROM votes WHERE voter_id = ? AND category = ?",
-                (voter_id, category),
-            )
-            row = cursor.fetchone()
-            if row and row[0] == SKIP_VOTE:
-                conn.execute(
-                    "UPDATE votes SET employee = ?, created_at = CURRENT_TIMESTAMP WHERE voter_id = ? AND category = ?",
-                    (employee, voter_id, category),
-                )
-                conn.commit()
-                return "ok"
-
-        return "duplicate"
+    except Exception as e:
+        return f"error: {e}"
     finally:
         conn.close()
 
@@ -449,71 +541,48 @@ def render_vote_page() -> None:
         c1.metric("Respondidas", len(completed))
         c2.metric("Por responder", len(remaining))
 
-    # Quando termina tudo, mostramos resumo pessoal.
-    if not remaining:
-        st.success("Já respondeste a tudo. Missão cumprida. 🏁")
-        my_votes = votes_df[votes_df["voter_id"] == voter_key][["category", "employee"]].copy()
-        my_votes["employee"] = my_votes["employee"].replace({SKIP_VOTE: "(não votado)"})
-        my_votes.columns = ["Categoria", "O teu voto"]
-        st.write("### O teu resumo final")
-        cols = my_votes.columns.tolist()
-        header_cells = "".join(
-            f'<th style="background:#1a3348;color:#FFFFFF;padding:10px 16px;text-align:left;font-weight:700;border-bottom:2px solid rgba(255,255,255,0.2);">{c}</th>'
-            for c in cols
-        )
-        rows_html = ""
-        for i, row in my_votes.iterrows():
-            bg = "#203c52" if i % 2 == 0 else "#1a3045"
-            cells = "".join(
-                f'<td style="padding:9px 16px;color:#FFFFFF;border-bottom:1px solid rgba(255,255,255,0.08);">{row[c]}</td>'
-                for c in cols
+    # Mostra todas as categorias, permitindo votar ou editar.
+    st.write("### Vota ou edita os teus votos")
+
+    for category in CATEGORIES:
+        with st.expander(f"{category}", expanded=False):
+            # Verifica se já votou nesta categoria
+            existing_vote = None
+            if not votes_df.empty:
+                vote_row = votes_df[(votes_df["voter_id"] == voter_key) & (votes_df["category"] == category)]
+                if not vote_row.empty:
+                    existing_vote = vote_row.iloc[0]["employee"]
+
+            nominees = get_nominees(category)
+            if existing_vote == SKIP_VOTE:
+                existing_vote = None  # Trata como não votado
+
+            selected_employee = st.selectbox(
+                "Escolhe 1 colega" + (f" (atual: {existing_vote})" if existing_vote else ""),
+                nominees,
+                index=nominees.index(existing_vote) if existing_vote in nominees else None,
+                placeholder="Seleciona um nome",
+                key=f"vote_{category}",
             )
-            rows_html += f'<tr style="background:{bg};">{cells}</tr>'
-        st.markdown(
-            f'<table style="width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;">'
-            f'<thead><tr>{header_cells}</tr></thead>'
-            f'<tbody>{rows_html}</tbody>'
-            f'</table>',
-            unsafe_allow_html=True,
-        )
-        return
 
-    # Mostra apenas a próxima categoria que falta.
-    current_category = remaining[0]
-    nominees = get_nominees(current_category)
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button(f"{'Atualizar' if existing_vote else 'Votar'}", use_container_width=True, type="primary", key=f"submit_{category}"):
+                    if not selected_employee:
+                        st.warning("Escolhe um colega antes de submeter.")
+                    else:
+                        result = save_vote(voter_id, category, selected_employee)
+                        if result == "ok":
+                            st.success("Voto registado com sucesso ✅")
+                            st.rerun()
+                        else:
+                            st.error("Erro ao registar voto.")
 
-    st.progress(
-        len(completed) / len(CATEGORIES),
-        text=f"Pergunta {len(completed) + 1} de {len(CATEGORIES)}",
-    )
-
-    st.markdown(f"## {current_category}")
-
-    selected_employee = st.selectbox(
-        "Escolhe 1 colega",
-        nominees,
-        index=None,
-        placeholder="Seleciona um nome",
-        key=f"vote_{current_category}",
-    )
-
-    if st.button("Submeter e continuar", use_container_width=True, type="primary"):
-        if not selected_employee:
-            st.warning("Escolhe um colega antes de submeter.")
-            st.stop()
-
-        result = save_vote(voter_id, current_category, selected_employee)
-
-        if result == "ok":
-            st.success("Voto registado com sucesso ✅")
-            st.rerun()
-        else:
-            st.error("Este identificador já votou nesta categoria.")
-
-    if st.button("Saltar esta categoria", type="secondary", use_container_width=True):
-        save_vote(voter_id, current_category, SKIP_VOTE)
-        st.info("Categoria ignorada. Continuação rápida!")
-        st.rerun()
+            with col2:
+                if st.button("Saltar", type="secondary", use_container_width=True, key=f"skip_{category}"):
+                    save_vote(voter_id, category, SKIP_VOTE)
+                    st.info("Categoria ignorada.")
+                    st.rerun()
 
 
 # =========================================================
@@ -625,7 +694,7 @@ def render_live_page() -> None:
     reveal = get_reveal_results()
     votes_df = load_votes()
 
-    # ── Fundo CPC azul (mais leve) ─────────────────────────────────────
+    # ── Fundo CPC azul (escuro para apresentação) ─────────────────────────────────────
     st.markdown(
         """
         <style>
@@ -641,7 +710,7 @@ def render_live_page() -> None:
         [data-testid="stToolbar"] {
             background-color: #0b3a5a !important;
         }
-        /* Header card branco do show_header */
+        /* Header card */
         .header-container {
             background-color: rgba(255,255,255,0.12) !important;
             box-shadow: none !important;
@@ -659,7 +728,7 @@ def render_live_page() -> None:
         [data-testid="stSidebar"] * {
             color: #c3e5ff !important;
         }
-        /* Botões streamlit sobre fundo escuro */
+        /* Botões */
         .stButton > button {
             background-color: rgba(255,255,255,0.14) !important;
             color: #FFFFFF !important;
@@ -672,6 +741,15 @@ def render_live_page() -> None:
             background-color: #6BAE8A !important;
             border-color: #6BAE8A !important;
             color: #0f3a52 !important;
+        }
+        /* Texto */
+        body, p, span, label, div {
+            color: #FFFFFF;
+            font-family: 'Lato', sans-serif;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #FFFFFF !important;
+            font-family: 'Lato', sans-serif;
         }
         </style>
         """,
