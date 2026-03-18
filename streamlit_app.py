@@ -35,7 +35,8 @@ st.set_page_config(
     layout="wide",
 )
 query_params = st.query_params
-mode = query_params.get("mode", "full")
+_raw_mode = query_params.get("mode", ["full"])
+mode = _raw_mode[0] if isinstance(_raw_mode, list) and _raw_mode else _raw_mode
 
 
 # -----------------------------
@@ -219,11 +220,14 @@ def is_allowed_voter_id(voter_id: str) -> bool:
     if not voter_id:
         return False
 
+    # Obrigatoriamente tem de ser um email válido (feito para evitar spam e duplicados).
+    if not is_valid_email(voter_id):
+        return False
+
     # Se ativares a regra, só aceita email do domínio da empresa.
     if REQUIRE_COMPANY_EMAIL:
-        return is_valid_email(voter_id) and voter_id.endswith("@" + EMAIL_DOMAIN)
+        return voter_id.endswith("@" + EMAIL_DOMAIN)
 
-    # Caso contrário, aceita qualquer identificador não vazio.
     return True
 
 
@@ -417,14 +421,14 @@ def render_vote_page() -> None:
     )
 
     if not voter_id:
-        st.info("Introduz o teu email ou identificador para começar.")
+        st.info("Introduz o teu email para começar.")
         return
 
     if not is_allowed_voter_id(voter_id):
         if REQUIRE_COMPANY_EMAIL:
             st.error(f"Usa o teu email da empresa (@{EMAIL_DOMAIN}).")
         else:
-            st.error("Introduz um email ou identificador válido.")
+            st.error("Introduz um email válido.")
         return
 
     voter_key = normalize_voter_id(voter_id)
@@ -506,7 +510,7 @@ def render_vote_page() -> None:
         else:
             st.error("Este identificador já votou nesta categoria.")
 
-    if st.button("Pular esta categoria", type="secondary", use_container_width=True):
+    if st.button("Saltar esta categoria", type="secondary", use_container_width=True):
         save_vote(voter_id, current_category, SKIP_VOTE)
         st.info("Categoria ignorada. Continuação rápida!")
         st.rerun()
@@ -526,6 +530,8 @@ def render_qr_page() -> None:
     if not app_url:
         st.warning("Adiciona a URL pública da app.")
         return
+
+    present_url = app_url.split("?")[0] + "?mode=present"
 
     qr_img = generate_qr_image(app_url)
     qr_b64 = base64.b64encode(qr_img.read()).decode()
@@ -573,7 +579,7 @@ def render_qr_page() -> None:
             font-size: 1rem;
             margin-bottom: 16px;
         }}
-        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QR Code" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCecho Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QR code, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p></div></div>
+        </style><div class="qr-layout"><div class="qr-image-block"><img src="data:image/png;base64,{qr_b64}" alt="QR Code" /><p>Scan me. Vote. Be legendary.</p></div><div class="qr-text-block"><h3>CPCecho Awards</h3><p>Neste evento serão atribuídos 10 prémios para celebrar as nossas melhores qualidades dos nossos colaboradores.</p><h3>Como Votar?</h3><p>Faz scan do QR code, insere o teu email, escolhe um colega para cada categoria e submete o voto.</p><p>Fácil, rápido e divertido.</p><p><a href="{present_url}" target="_blank">Ver apresentação (modo fullscreen)</a></p></div></div>
         """,
         unsafe_allow_html=True,
     )
@@ -1128,6 +1134,20 @@ st.markdown(
 
 if mode == "vote":
     page = "Vote"
+elif mode == "present":
+    # Versão standalone para apresentação (sem sidebar nem menu Streamlit).
+    st.markdown(
+        """
+        <style>
+        [data-testid="stSidebar"] {display: none !important;}
+        #MainMenu {visibility: hidden;}
+        [data-testid="stToolbar"] {display: none !important;}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    render_live_page()
+    st.stop()
 else:
     page = st.sidebar.radio(
         "Navigation",
