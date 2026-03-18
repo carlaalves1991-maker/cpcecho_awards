@@ -336,11 +336,8 @@ def show_header() -> None:
         """,
         unsafe_allow_html=True,
     )
-    logo_html = (
-        f'<img src="data:image/jpeg;base64,{LOGO_B64}" style="height:96px;width:96px;object-fit:contain;flex-shrink:0;" alt="Logo">'
-        if LOGO_B64 else
-        '<span style="font-size:2rem;line-height:1;">🏆</span>'
-    )
+    # Não mostrar o logo em imagem (mantemos um emoji / ícone em vez disso).
+    logo_html = '<span style="font-size:2rem;line-height:1;">🏆</span>'
     st.markdown(
         f'<div class="header-container" style="display:flex;align-items:flex-start;gap:4px;">'
         f'{logo_html}'
@@ -636,11 +633,7 @@ def render_live_page(standalone: bool = False) -> None:
     # ── Header com setas + olho na mesma linha ───────────────────────
     hcol_title, hcol_prev, hcol_next, hcol_eye = st.columns([10, 0.55, 0.55, 0.55])
     with hcol_title:
-        live_logo_html = (
-            f'<img src="data:image/jpeg;base64,{LOGO_B64}" style="height:52px;width:52px;object-fit:contain;flex-shrink:0;filter:brightness(0) invert(1);" alt="Logo">'
-            if LOGO_B64 else
-            '<span style="font-size:2.5rem;line-height:1;">🏆</span>'
-        )
+        live_logo_html = '<span style="font-size:2.5rem;line-height:1;">🏆</span>'
         st.markdown(
             f'<div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px 0;">'
             f'{live_logo_html}'
