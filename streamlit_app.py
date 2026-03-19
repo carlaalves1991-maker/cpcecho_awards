@@ -10,7 +10,7 @@ import streamlit as st
 
 # Logo em base64 para usar em qualquer contexto HTML
 def _load_logo_b64() -> str:
-    logo_path = Path(__file__).parent / "cpcecho.png"
+    logo_path = Path(__file__).parent / "cpcecho_logo.png"
     if logo_path.exists():
         return base64.b64encode(logo_path.read_bytes()).decode()
     return ""
@@ -45,7 +45,7 @@ LOGOSM_B64 = _load_logosm_b64()
 # - Página admin para controlar a apresentação
 # =========================================================
 st.set_page_config(
-    page_title="CPCECHO Awards by SmartLabs",
+    page_title="Awards by SmartLabs",
     page_icon="🏆",
     layout="wide",
 )
@@ -325,12 +325,15 @@ def show_header() -> None:
         .header-container {
             padding: 16px 0 8px 0;
             margin-bottom: 16px;
-            display: flex;
-            align-items: center;
             border-bottom: 2px solid #e8edf2;
         }
+        .header-top-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
         .header-title {
-            color: #174E6D;
+            color: #216390 !important;
             font-family: 'Lato', sans-serif;
             font-size: 2rem;
             margin: 0;
@@ -346,19 +349,22 @@ def show_header() -> None:
         unsafe_allow_html=True,
     )
     logo_html = (
-        f'<img src="data:image/jpeg;base64,{LOGO_B64}" style="height:80px;width:96px;object-fit:contain;flex-shrink:0;" alt="Logo">'
+        f'<img src="data:image/jpeg;base64,{LOGO_B64}" style="height:96px;width:250px;object-fit:contain;flex-shrink:0;" alt="Logo">'
         if LOGO_B64 else
         '<span style="font-size:2rem;line-height:1;">🏆</span>'
     )
-    # Adiciona o logo à frente de 'Powered by SmartLabs '
+    # Logo CPC ECHO + Awards à esquerda; Powered by SmartLabs no canto inferior direito
     st.markdown(
-        f'<div class="header-container" style="display:flex;align-items:flex-start;gap:4px;">'
-        f'{logo_html}'
-        f'<div><h1 class="header-title">CPCECHO Awards</h1>'
-        f'<span style="display:flex;align-items:center;gap:1px;margin-top:2px;">'
-        f'<span style="font-size:1.25rem;font-weight:700;color:#216390;line-height:1.1;">Powered by SmartLabs</span>'
-        f'<img src="data:image/jpeg;base64,{LOGOSM_B64}" style="height:2.5em;width:auto;vertical-align:middle;margin-left:0.2em;" alt="Logo">'
-        f'</span></div></div>',
+        f'<div class="header-container" style="display:flex;align-items:flex-end;justify-content:space-between;">'
+        f'  <div class="header-top-row">'
+        f'    {logo_html}'
+        f'    <h1 class="header-title">Awards</h1>'
+        f'  </div>'
+        f'  <div style="display:flex;align-items:center;gap:1px;padding-bottom:4px;">'
+        f'    <span style="font-size:1.6rem;font-weight:700;color:#216390;line-height:1.1;">Powered by SmartLabs</span>'
+        f'    <img src="data:image/jpeg;base64,{LOGOSM_B64}" style="height:4em;width:auto;vertical-align:middle;" alt="Logo">'
+        f'  </div>'
+        f'</div>',
         unsafe_allow_html=True,
     )
 # =========================================================
