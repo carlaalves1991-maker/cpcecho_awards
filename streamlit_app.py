@@ -7,6 +7,7 @@ from typing import List
 import pandas as pd
 import qrcode
 import streamlit as st
+import streamlit.components.v1 as components
 
 # Logo em base64 para usar em qualquer contexto HTML
 def _load_logo_b64() -> str:
@@ -504,6 +505,36 @@ def render_vote_page() -> None:
         text=f"Pergunta {done_count + 1} de {len(CATEGORIES)}",
     )
     st.markdown(f"## {current_category}")
+    # JS via window.parent: monitoriza o popover e força abertura para baixo
+    components.html(
+        """
+        <script>
+        (function() {
+            var parentDoc = window.parent.document;
+            function fixPopover(node) {
+                var select = parentDoc.querySelector('[data-baseweb="select"]');
+                if (!select) return;
+                var rect = select.getBoundingClientRect();
+                var scrollY = window.parent.scrollY || window.parent.pageYOffset || 0;
+                node.style.setProperty('top', (rect.bottom + scrollY + 4) + 'px', 'important');
+                node.style.setProperty('bottom', 'auto', 'important');
+                node.style.setProperty('transform', 'none', 'important');
+            }
+            var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1 && node.dataset && node.dataset.baseweb === 'popover') {
+                            fixPopover(node);
+                        }
+                    });
+                });
+            });
+            observer.observe(parentDoc.body, { childList: true, subtree: false });
+        })();
+        </script>
+        """,
+        height=0,
+    )
     selected_employee = st.selectbox(
         "Escolhe 1 colega",
         nominees,
