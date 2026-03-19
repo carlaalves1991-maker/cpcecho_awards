@@ -326,43 +326,80 @@ def show_header() -> None:
             padding: 16px 0 8px 0;
             margin-bottom: 16px;
             border-bottom: 2px solid #e8edf2;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         .header-top-row {
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-shrink: 1;
+            min-width: 0;
+        }
+        .header-logo {
+            height: clamp(36px, 10vw, 64px);
+            width: auto;
+            max-width: clamp(100px, 40vw, 200px);
+            object-fit: contain;
+            flex-shrink: 1;
         }
         .header-title {
             color: #216390 !important;
             font-family: 'Lato', sans-serif;
-            font-size: 2rem;
+            font-size: clamp(0.9rem, 6vw, 2rem);
             margin: 0;
+            white-space: nowrap;
         }
-        .header-subtitle {
+        .header-powered {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-bottom: 4px;
+            flex-shrink: 0;
+        }
+        .header-powered span {
+            font-size: clamp(0.85rem, 3vw, 1.6rem);
+            font-weight: 700;
             color: #216390;
-            font-family: 'Lato', sans-serif;
-            font-size: 0.9rem;
-            margin: 0;
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+        .header-powered img {
+            height: clamp(1.8em, 5vw, 3.5em);
+            width: auto;
+            vertical-align: middle;
+        }
+        @media (max-width: 480px) {
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .header-powered {
+                align-self: flex-end;
+            }
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
     logo_html = (
-        f'<img src="data:image/jpeg;base64,{LOGO_B64}" style="height:96px;width:250px;object-fit:contain;flex-shrink:0;" alt="Logo">'
+        f'<img class="header-logo" src="data:image/jpeg;base64,{LOGO_B64}" alt="Logo">'
         if LOGO_B64 else
         '<span style="font-size:2rem;line-height:1;">🏆</span>'
     )
     # Logo CPC ECHO + Awards à esquerda; Powered by SmartLabs no canto inferior direito
     st.markdown(
-        f'<div class="header-container" style="display:flex;align-items:flex-end;justify-content:space-between;">'
+        f'<div class="header-container">'
         f'  <div class="header-top-row">'
         f'    {logo_html}'
         f'    <h1 class="header-title">Awards</h1>'
         f'  </div>'
-        f'  <div style="display:flex;align-items:center;gap:1px;padding-bottom:4px;">'
-        f'    <span style="font-size:1.6rem;font-weight:700;color:#216390;line-height:1.1;">Powered by SmartLabs</span>'
-        f'    <img src="data:image/jpeg;base64,{LOGOSM_B64}" style="height:4em;width:auto;vertical-align:middle;" alt="Logo">'
+        f'  <div class="header-powered">'
+        f'    <span>Powered by SmartLabs</span>'
+        f'    <img src="data:image/jpeg;base64,{LOGOSM_B64}" alt="SmartLabs Logo">'
         f'  </div>'
         f'</div>',
         unsafe_allow_html=True,
