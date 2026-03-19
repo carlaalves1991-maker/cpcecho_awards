@@ -95,7 +95,7 @@ EMPLOYEES: List[str] = [
     "Daniela Cunha",
     "Diana Neves",
     "Diogo Cruz",
-    "Fernando Matos Pereira",
+    "Yoda",
     "Filipe Cerqueira",
     "Francisco Monteiro",
     "Frederico Gonçalves",
@@ -108,8 +108,7 @@ EMPLOYEES: List[str] = [
     "João Silva",
     "João Teixeira",
     "Jorge Miranda",
-    "Jorge Queiroz Machado",
-    "José Carlos Silva",
+    "Pokemon",
     "José Manuel Pires",
     "Luísa Cortez",
     "Marcio Sousa",
@@ -124,7 +123,7 @@ EMPLOYEES: List[str] = [
     "Patricia Lima",
     "Pedro Andreso",
     "Pedro Ribeiro",
-    "Ricardo Sousa",
+    "Batatun",
     "Rui Bandeira",
     "Rui Caldas",
     "Sandra Silva",
@@ -132,6 +131,8 @@ EMPLOYEES: List[str] = [
     "Silvia Martins",
     "Susana Costa",
 ]
+# Votos nestas opções são contados como nulos e não entram nos resultados.
+NULL_VOTES: List[str] = ["Batatun", "Pokemon", "Yoda"]
 # Se quiseres limitar nomeados por categoria, podes usar isto.
 # Se ficar vazio, toda a gente pode ser votada em todas as categorias.
 NOMINEES_BY_CATEGORY = {
@@ -628,6 +629,8 @@ def render_qr_page() -> None:
 def build_results_for_category(votes_df: pd.DataFrame, category: str) -> pd.DataFrame:
     # Filtra só os votos da categoria atual.
     category_df = votes_df[votes_df["category"] == category]
+    # Remove votos nulos (Batatun, Pokemon, Yoda)
+    category_df = category_df[~category_df["employee"].isin(NULL_VOTES)]
     if category_df.empty:
         return pd.DataFrame(columns=["employee", "votes", "percentage"])
     # Conta quantos votos teve cada colaborador.
